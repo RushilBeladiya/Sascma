@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "270462597470",
+    "project_id": "sascma-88f4d",
+    "storage_bucket": "sascma-88f4d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:270462597470:android:e309c4c8586895d02c37cf",
+        "android_client_info": {
+          "package_name": "com.example.sascma"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOaxTIhgn1cJBKkbuU10APA1X1U5IW1qg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
