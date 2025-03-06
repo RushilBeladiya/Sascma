@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../models/faculty_model.dart';
 import '../../models/student_model.dart';
 import '../../views/screens/administrator_screens/home/admin_home_screen.dart';
@@ -44,6 +45,7 @@ class AuthController extends GetxController {
       semester: semester,
       division: division,
       profileImageUrl: "",
+      attendance: [], // Provide an empty list for attendance
     );
     await dbRefStudent.child(uid).set(user.toMap());
   }
@@ -195,7 +197,7 @@ class AuthController extends GetxController {
 
       if (adminEvent.snapshot.exists) {
         Map<dynamic, dynamic> adminData =
-        adminEvent.snapshot.value as Map<dynamic, dynamic>;
+            adminEvent.snapshot.value as Map<dynamic, dynamic>;
         Map<dynamic, dynamic> admin = adminData.values.first;
 
         if (admin['phoneNumber'] == phoneNumber) {
@@ -212,7 +214,7 @@ class AuthController extends GetxController {
       } else if (facultyEvent.snapshot.exists) {
         // Faculty found, get data
         Map<dynamic, dynamic> facultyData =
-        facultyEvent.snapshot.value as Map<dynamic, dynamic>;
+            facultyEvent.snapshot.value as Map<dynamic, dynamic>;
         Map<dynamic, dynamic> faculty = facultyData.values.first;
 
         if (faculty['phoneNumber'] == phoneNumber) {
@@ -234,8 +236,6 @@ class AuthController extends GetxController {
       print(e);
     }
   }
-
-
 
   Future<void> logoutUser() async {
     await FirebaseAuth.instance.signOut();

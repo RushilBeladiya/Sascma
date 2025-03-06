@@ -29,6 +29,8 @@ class FacultyModel {
     );
   }
 
+  get stream => null;
+
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,

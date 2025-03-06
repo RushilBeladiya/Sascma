@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -6,6 +7,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+
 import '../../../models/student_model.dart';
 import '../../../views/screens/student_screens/home/bottom_navigation_screen/dash_board_screen.dart';
 import '../../../views/screens/student_screens/home/bottom_navigation_screen/pending_screen.dart';
@@ -20,14 +22,15 @@ class StudentHomeController extends GetxController {
   final ImagePicker picker = ImagePicker();
   var isLoading = false.obs;
 
-  final DatabaseReference dbRef = FirebaseDatabase.instance.ref().child('student');
+  final DatabaseReference dbRef =
+      FirebaseDatabase.instance.ref().child('student');
 
   @override
   void onInit() {
     super.onInit();
     fetchCurrentUserData();
   }
-  
+
   final RxList bottomScreenList = [
     const ProfileScreen(),
     const PendingScreen(),
@@ -120,9 +123,8 @@ class StudentHomeController extends GetxController {
     semester: '',
     division: '',
     profileImageUrl: '',
+    attendance: [],
   ).obs;
-
-
 
   Future<void> fetchCurrentUserData() async {
     try {
@@ -134,7 +136,23 @@ class StudentHomeController extends GetxController {
 
           if (data != null) {
             currentStudent.value = StudentModel.fromMap(data);
-            print("User Loaded:----- ${currentStudent.value.firstName} ${currentStudent.value.lastName}");
+            // Fetch attendance data
+            DatabaseEvent attendanceEvent = await FirebaseDatabase.instance
+                .ref()
+                .child('attendance')
+                .child(currentStudent.value.stream)
+                .child(user.uid)
+                .once();
+            if (attendanceEvent.snapshot.value != null) {
+              currentStudent.value.attendance =
+                  (attendanceEvent.snapshot.value as Map<dynamic, dynamic>?)
+                          ?.values
+                          .map((e) => e as Map<String, dynamic>)
+                          .toList() ??
+                      [];
+            }
+            print(
+                "User Loaded:----- ${currentStudent.value.firstName} ${currentStudent.value.lastName}");
           } else {
             print("Failed to parse user data.");
           }

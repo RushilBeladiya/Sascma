@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:sascma/views/screens/faculty_screens/attendance/attendance_screen.dart';
 import 'package:share_plus/share_plus.dart';
+
 import '../../../../controller/Auth/auth_controller.dart';
 import '../../../../controller/Auth/dateTimeController.dart';
 import '../../../../controller/Faculty/home/faculty_home_controller.dart';
 import '../../../../core/utils/colors.dart';
 import '../../../../core/utils/images.dart';
 import '../../auth_screen/student_auth_screen/student_registration_screen.dart';
+import '../../student_screens/home/bottom_navigation_screen/profile_screen.dart';
 import '../../student_screens/home/college_info_screen.dart';
 import '../../student_screens/home/contact_us_screen.dart';
-import '../../student_screens/home/bottom_navigation_screen/profile_screen.dart';
 import '../../student_screens/setting_screen/settings_screen.dart';
 import '../../student_screens/setting_screen/webview_screen.dart';
 
@@ -25,7 +27,7 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
   final DateTimeController dateTimeController = Get.find();
   final AuthController authController = Get.find();
   final FacultyHomeController facultyHomeController =
-  Get.put(FacultyHomeController());
+      Get.put(FacultyHomeController());
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +74,7 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Obx(
-                              () => Text(
+                          () => Text(
                             dateTimeController.formattedDate.value,
                             style: TextStyle(
                               fontSize: 14.sp,
@@ -82,7 +84,7 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                           ),
                         ),
                         Obx(
-                              () => Text(
+                          () => Text(
                             dateTimeController.formattedTime.value,
                             // Time
                             style: TextStyle(
@@ -129,17 +131,20 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 10.w),
                         child: Obx(
-                              () => CircleAvatar(
+                          () => CircleAvatar(
                             backgroundColor: AppColor.whiteColor,
                             radius: 42.r,
                             child: CircleAvatar(
                               radius: 40.r,
-                              backgroundImage: facultyHomeController.facultyModel
-                                  .value.profileImageUrl.isNotEmpty
+                              backgroundImage: facultyHomeController
+                                      .facultyModel
+                                      .value
+                                      .profileImageUrl
+                                      .isNotEmpty
                                   ? NetworkImage(facultyHomeController
-                                  .facultyModel.value.profileImageUrl)
+                                      .facultyModel.value.profileImageUrl)
                                   : const AssetImage(AppImage.user)
-                              as ImageProvider,
+                                      as ImageProvider,
                             ),
                           ),
                         ),
@@ -152,7 +157,7 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Obx(
-                                  () => Text(
+                              () => Text(
                                 "${facultyHomeController.facultyModel.value.firstName} ${facultyHomeController.facultyModel.value.lastName} ${facultyHomeController.facultyModel.value.surName}",
                                 style: TextStyle(
                                   fontSize: 16.sp,
@@ -166,7 +171,7 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                               height: 3.h,
                             ),
                             Obx(
-                                  () => Text(
+                              () => Text(
                                 'Mobile : ${facultyHomeController.facultyModel.value.phoneNumber}',
                                 style: TextStyle(
                                   color: AppColor.whiteColor,
@@ -179,7 +184,7 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                               height: 3.h,
                             ),
                             Obx(
-                                  () => Text(
+                              () => Text(
                                 'Email : ${facultyHomeController.facultyModel.value.email}',
                                 style: TextStyle(
                                   color: AppColor.whiteColor,
@@ -305,6 +310,18 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                     image: AppImage.contactus,
                   ),
                 ),
+                GestureDetector(
+                  onTap: () async {
+                    await Get.to(() => AttendanceScreen(
+                        stream:
+                            facultyHomeController.facultyModel.value.stream ??
+                                ''));
+                  },
+                  child: buildDashboardItem(
+                    title: "Attendance",
+                    image: AppImage.attandence,
+                  ),
+                ),
               ],
             ),
           ),
@@ -317,7 +334,7 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
           padding: EdgeInsets.zero,
           children: [
             Obx(
-                  () => UserAccountsDrawerHeader(
+              () => UserAccountsDrawerHeader(
                 margin: EdgeInsets.zero,
                 accountName: Text(""),
                 accountEmail: Text(""),
@@ -330,9 +347,9 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                     child: CircleAvatar(
                       radius: 30.r,
                       backgroundImage: facultyHomeController
-                          .facultyModel.value.profileImageUrl.isNotEmpty
+                              .facultyModel.value.profileImageUrl.isNotEmpty
                           ? NetworkImage(facultyHomeController
-                          .facultyModel.value.profileImageUrl)
+                              .facultyModel.value.profileImageUrl)
                           : const AssetImage(AppImage.user) as ImageProvider,
                     ),
                   ),
@@ -346,7 +363,8 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
               leading: Icon(Icons.person),
               title: const Text('Add Student'),
               onTap: () async {
-                await Get.to(() =>  StudentRegistrationScreen()); // Close the drawer
+                await Get.to(
+                    () => StudentRegistrationScreen()); // Close the drawer
               },
             ),
             ListTile(
@@ -388,7 +406,7 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                 title: Text('Settings'),
                 onTap: () async {
                   await Get.to(
-                          () => const SettingsScreen()); // Close the drawer
+                      () => const SettingsScreen()); // Close the drawer
                 },
               ),
             ),
