@@ -126,24 +126,19 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           title: Text((student['data']['firstName'] ?? '') +
                               ' ' +
                               (student['data']['lastName'] ?? '')),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: Icon(Icons.check, color: Colors.green),
-                                onPressed: () {
-                                  attendanceController.markAttendance(
-                                      selectedStream!, student['id'], true);
-                                },
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.close, color: Colors.red),
-                                onPressed: () {
-                                  attendanceController.markAttendance(
-                                      selectedStream!, student['id'], false);
-                                },
-                              ),
-                            ],
+                          trailing: GestureDetector(
+                            onTap: () {
+                              attendanceController.markAttendance(
+                                  selectedStream!, student['id'], true);
+                            },
+                            onDoubleTap: () {
+                              attendanceController.markAttendance(
+                                  selectedStream!, student['id'], false);
+                            },
+                            child: Icon(
+                              Icons.circle,
+                              color: Colors.grey,
+                            ),
                           ),
                         );
                       },
