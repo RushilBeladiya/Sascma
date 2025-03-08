@@ -12,7 +12,7 @@ class _AttendenceScreenState extends State<AttendenceScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Text("Attendece screen"),
+        child: Text("Attendece screen student"),
       ),
     );
   }

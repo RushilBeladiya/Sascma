@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -67,20 +66,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           Stack(
                             children: [
                               Obx(
-                                () =>  CircleAvatar(
-                                        radius: 50.r,
-                                      //   backgroundImage: homeController
-                                      //           .userModel
-                                      //           .value
-                                      //           .profileImageUrl
-                                      //           .isNotEmpty
-                                      //       ? NetworkImage(homeController
-                                      //           .userModel
-                                      //           .value
-                                      //           .profileImageUrl)
-                                      //       : const AssetImage(AppImage.user)
-                                      //           as ImageProvider,
-                                      ),
+                                () => CircleAvatar(
+                                  radius: 50.r,
+                                  //   backgroundImage: homeController
+                                  //           .userModel
+                                  //           .value
+                                  //           .profileImageUrl
+                                  //           .isNotEmpty
+                                  //       ? NetworkImage(homeController
+                                  //           .userModel
+                                  //           .value
+                                  //           .profileImageUrl)
+                                  //       : const AssetImage(AppImage.user)
+                                  //           as ImageProvider,
+                                ),
                               ),
                               Positioned(
                                 bottom: 0,

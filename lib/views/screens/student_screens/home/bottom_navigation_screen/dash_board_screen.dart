@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:sascma/views/screens/student_screens/attendance/student_attendance_screen.dart';
 import 'package:sascma/views/screens/student_screens/home/bottom_navigation_screen/profile_screen.dart';
+import 'package:sascma/views/screens/student_screens/home/fee_payment_screen.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../../controller/Auth/auth_controller.dart';
@@ -213,20 +214,31 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                             SizedBox(
                               height: 3.h,
                             ),
-                            LinearPercentIndicator(
-                              width: 140.w,
-                              lineHeight: 5.h,
-                              percent: 0.6,
-                              leading: Text(
-                                "60%",
-                                style: TextStyle(
-                                  color: AppColor.whiteColor,
-                                  fontSize: 10.sp,
-                                ),
-                              ),
-                              barRadius: Radius.circular(10.r),
-                              backgroundColor: Colors.white,
-                              progressColor: Colors.orange,
+                            Obx(
+                              () {
+                                double attendancePercentage = homeController
+                                        .currentStudent.value.attendance
+                                        .where((record) =>
+                                            record['isPresent'] == true)
+                                        .length /
+                                    homeController
+                                        .currentStudent.value.attendance.length;
+                                return LinearPercentIndicator(
+                                  width: 140.w,
+                                  lineHeight: 5.h,
+                                  percent: attendancePercentage,
+                                  leading: Text(
+                                    "${(attendancePercentage * 100).toStringAsFixed(1)}%",
+                                    style: TextStyle(
+                                      color: AppColor.whiteColor,
+                                      fontSize: 10.sp,
+                                    ),
+                                  ),
+                                  barRadius: Radius.circular(10.r),
+                                  backgroundColor: Colors.white,
+                                  progressColor: Colors.orange,
+                                );
+                              },
                             ),
                           ],
                         ),
@@ -324,9 +336,14 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                   title: "Sports",
                   image: AppImage.sports,
                 ),
-                buildDashboardItem(
-                  title: "Fee payment",
-                  image: AppImage.feePayment,
+                GestureDetector(
+                  onTap: () {
+                    Get.to(() => FeePaymentScreen());
+                  },
+                  child: buildDashboardItem(
+                    title: "Fee payment",
+                    image: AppImage.feePayment,
+                  ),
                 ),
                 GestureDetector(
                   onTap: () {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:sascma/views/screens/faculty_screens/attendance/attendance_screen.dart';
+import 'package:sascma/views/screens/faculty_screens/home/fee_payment_status_screen.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../controller/Auth/auth_controller.dart';
@@ -297,9 +298,13 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                   title: "Sports",
                   image: AppImage.sports,
                 ),
+
                 buildDashboardItem(
-                  title: "Fee payment",
+                  title: "Fee Payment",
                   image: AppImage.feePayment,
+                  onTap: () {
+                    Get.to(() => FeePaymentStatusScreen());
+                  },
                 ),
                 GestureDetector(
                   onTap: () {
@@ -416,35 +421,39 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
     );
   }
 
-  Widget buildDashboardItem({required String title, required String image}) {
-    return Container(
-      alignment: Alignment.center,
-      padding: EdgeInsets.only(left: 15.w, right: 25.w),
-      decoration: BoxDecoration(
-        color: AppColor.primaryColor.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(8.r),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Image.asset(
-            height: 28.h,
-            fit: BoxFit.contain,
-            image,
-            filterQuality: FilterQuality.high,
-          ),
-          Text(
-            title,
-            textAlign: TextAlign.start,
-            style: TextStyle(
-              fontSize: 13.sp,
-              fontWeight: FontWeight.w500,
-              color: AppColor.blackColor,
-              overflow: TextOverflow.ellipsis,
+  Widget buildDashboardItem(
+      {required String title, required String image, Function()? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        alignment: Alignment.center,
+        padding: EdgeInsets.only(left: 15.w, right: 25.w),
+        decoration: BoxDecoration(
+          color: AppColor.primaryColor.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(8.r),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Image.asset(
+              height: 28.h,
+              fit: BoxFit.contain,
+              image,
+              filterQuality: FilterQuality.high,
             ),
-          ),
-        ],
+            Text(
+              title,
+              textAlign: TextAlign.start,
+              style: TextStyle(
+                fontSize: 13.sp,
+                fontWeight: FontWeight.w500,
+                color: AppColor.blackColor,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

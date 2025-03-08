@@ -11,6 +11,7 @@ class StudentModel {
   String division;
   String profileImageUrl;
   List<Map<String, dynamic>> attendance;
+  String status; // Add this field
 
   StudentModel({
     required this.uid,
@@ -25,6 +26,7 @@ class StudentModel {
     required this.division,
     required this.profileImageUrl,
     required this.attendance,
+    this.status = '', // Initialize with an empty string
   });
 
   factory StudentModel.fromMap(Map<dynamic, dynamic> map) {
@@ -43,6 +45,7 @@ class StudentModel {
       attendance: map['attendance'] != null
           ? List<Map<String, dynamic>>.from(map['attendance'])
           : [],
+      status: map['status'] ?? '', // Add this line
     );
   }
 
@@ -60,6 +63,7 @@ class StudentModel {
       'division': division,
       'profileImageUrl': profileImageUrl,
       'attendance': attendance,
+      'status': status, // Add this line
     };
   }
 }

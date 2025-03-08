@@ -25,10 +25,27 @@ class StudentHomeController extends GetxController {
   final DatabaseReference dbRef =
       FirebaseDatabase.instance.ref().child('student');
 
+  var feePayments = <FeePayment>[].obs;
+  var currentStudent = StudentModel(
+    uid: '',
+    firstName: '',
+    lastName: '',
+    surName: '',
+    spid: '',
+    phoneNumber: '',
+    email: '',
+    stream: '',
+    semester: '',
+    division: '',
+    profileImageUrl: '',
+    attendance: [],
+  ).obs;
+
   @override
   void onInit() {
     super.onInit();
     fetchCurrentUserData();
+    fetchFeePayments();
   }
 
   final RxList bottomScreenList = [
@@ -79,53 +96,6 @@ class StudentHomeController extends GetxController {
     }
   }
 
-  // void fetchUserData() async {
-  //   try {
-  //     String uid = authUser.currentUser!.uid;
-  //     DocumentSnapshot userDoc =
-  //         await FirebaseFirestore.instance.collection('users').doc(uid).get();
-  //
-  //     userModel.value = StudentModel.fromFirestore(userDoc);
-  //   } catch (e) {
-  //     Get.snackbar("Error", "Failed to fetch user data: $e");
-  //   }
-  // }
-
-  // Future<void> updateUserData(String username) async {
-  //   String uid = userModel.value.uid;
-  //   try {
-  //     if (username != userModel.value.firstName) {
-  //       await FirebaseFirestore.instance.collection('users').doc(uid).update({
-  //         'username': username,
-  //       });
-  //       fetchUserData();
-  //       await Fluttertoast.showToast(
-  //           msg: "Update successful", toastLength: Toast.LENGTH_LONG);
-  //       Get.back();
-  //     } else {
-  //       await Fluttertoast.showToast(
-  //           msg: "Your username is same!!!", toastLength: Toast.LENGTH_LONG);
-  //     }
-  //   } catch (e) {
-  //     Get.snackbar("Error", "Failed to update profile: $e");
-  //   }
-  // }
-
-  var currentStudent = StudentModel(
-    uid: '',
-    firstName: '',
-    lastName: '',
-    surName: '',
-    spid: '',
-    phoneNumber: '',
-    email: '',
-    stream: '',
-    semester: '',
-    division: '',
-    profileImageUrl: '',
-    attendance: [],
-  ).obs;
-
   Future<void> fetchCurrentUserData() async {
     try {
       User? user = FirebaseAuth.instance.currentUser;
@@ -166,4 +136,19 @@ class StudentHomeController extends GetxController {
       print("Error fetching user data: $e");
     }
   }
+
+  void fetchFeePayments() {
+    // Fetch fee payments from an API or database and populate the feePayments list
+    feePayments.value = [
+      FeePayment(amount: 2000, status: 'Unpaid'),
+      // Add more fee payments as needed
+    ];
+  }
+}
+
+class FeePayment {
+  final int amount;
+  final String status;
+
+  FeePayment({required this.amount, required this.status});
 }

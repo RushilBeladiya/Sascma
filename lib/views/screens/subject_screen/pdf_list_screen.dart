@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:sascma/views/screens/subject_screen/pdf_view_screen.dart';
-import '../../../controller/Faculty/subject_controller.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../../../controller/Faculty/subject_controller.dart';
 import '../../../controller/Student/home/student_home_controller.dart';
 import '../../../core/utils/colors.dart';
 

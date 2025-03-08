@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:sascma/views/screens/student_screens/attendance/student_attendance_screen.dart';
+import 'package:sascma/views/screens/student_screens/home/fee_payment_screen.dart';
+
 import '../../../../controller/Student/home/student_home_controller.dart';
 import '../../../../core/utils/colors.dart';
 
@@ -39,6 +42,11 @@ class _HomeScreenState extends State<HomeScreen>
             selectedItemColor: Colors.yellow,
             onTap: (index) {
               homeController.bottomScreenIndex.value = index;
+              if (index == 1) {
+                Get.to(() => StudentAttendanceScreen());
+              } else if (index == 3) {
+                Get.to(() => FeePaymentScreen());
+              }
             },
             items: [
               BottomNavigationBarItem(

@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -58,52 +57,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Obx(
           () => Column(
             children: [
-               Card(
-                      elevation: 2,
-                      // color: AppColor.primaryColor.withOpacity(0.15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15.r),
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                          vertical: 30.h,
-                          horizontal: 25.w,
-                        ),
-                        child: Column(
-                          children: [
-                            Obx(
-                              () => homeController.isLoading.value
-                                  ? CircularProgressIndicator() // Show loading indicator
-                                  : CircleAvatar(
-                                      radius: 50.r,
-                                      backgroundImage: homeController.currentStudent
-                                              .value.profileImageUrl.isNotEmpty
-                                          ? NetworkImage(homeController
-                                              .currentStudent.value.profileImageUrl)
-                                          : const AssetImage(AppImage.user)
-                                              as ImageProvider,
-                                    ),
-                            ),
-                            SizedBox(height: 10.h),
-                            Obx(
-                              () => Text(
-                                (homeController.currentStudent.value.firstName) ?? "",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18.sp,
-                                ),
+              Card(
+                elevation: 2,
+                // color: AppColor.primaryColor.withOpacity(0.15),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15.r),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    vertical: 30.h,
+                    horizontal: 25.w,
+                  ),
+                  child: Column(
+                    children: [
+                      Obx(
+                        () => homeController.isLoading.value
+                            ? CircularProgressIndicator() // Show loading indicator
+                            : CircleAvatar(
+                                radius: 50.r,
+                                backgroundImage: homeController.currentStudent
+                                        .value.profileImageUrl.isNotEmpty
+                                    ? NetworkImage(homeController
+                                        .currentStudent.value.profileImageUrl)
+                                    : const AssetImage(AppImage.user)
+                                        as ImageProvider,
                               ),
-                            ),
-                            SizedBox(height: 10.h),
-                            profileDetailRow('Mobile No',
-                                (homeController.currentStudent.value.phoneNumber)),
-                            profileDetailRow('Email Id',
-                                (homeController.currentStudent.value.email)),
-                            profileDetailRow('Session', '2024-2025'),
-                          ],
+                      ),
+                      SizedBox(height: 10.h),
+                      Obx(
+                        () => Text(
+                          (homeController.currentStudent.value.firstName) ?? "",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18.sp,
+                          ),
                         ),
                       ),
-                    ),
+                      SizedBox(height: 10.h),
+                      profileDetailRow('Mobile No',
+                          (homeController.currentStudent.value.phoneNumber)),
+                      profileDetailRow('Email Id',
+                          (homeController.currentStudent.value.email)),
+                      profileDetailRow('Session', '2024-2025'),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -136,6 +135,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget buildSettingsOption(IconData icon, String title, VoidCallback onTap) {
+    return ListTile(
+      leading: Icon(icon, color: AppColor.primaryColor),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontSize: 16.sp,
+          fontWeight: FontWeight.bold,
+          color: AppColor.blackColor,
+        ),
+      ),
+      trailing: Icon(Icons.arrow_forward_ios, color: AppColor.primaryColor),
+      onTap: onTap,
     );
   }
 }
