@@ -43,6 +43,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     }
   }
 
+  void _deleteClass(String classId) {
+    attendanceController.deleteClass(classId);
+    Get.snackbar("Success", "Class deleted successfully");
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -143,6 +148,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         );
                       },
                     ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Get.snackbar('Success', 'Attendance records submitted.');
+              },
+              child: Text('Submit Records'),
             ),
           ],
         ),

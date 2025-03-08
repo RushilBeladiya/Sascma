@@ -30,7 +30,8 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> {
           itemBuilder: (context, index) {
             final record = attendance[index];
             return ListTile(
-              title: Text(record['date'] ?? ''),
+              title: Text(record['subject'] ?? ''),
+              subtitle: Text(record['date'] ?? ''),
               trailing: Text(record['isPresent'] ? 'Present' : 'Absent'),
             );
           },
