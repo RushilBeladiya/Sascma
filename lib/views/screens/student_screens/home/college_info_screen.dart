@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart'
-    show canLaunch, canLaunchUrl, launchUrl;
+import 'package:url_launcher/url_launcher.dart' show canLaunchUrl, launchUrl;
 
 import '../../../../core/utils/colors.dart';
 import '../../../../core/utils/images.dart';

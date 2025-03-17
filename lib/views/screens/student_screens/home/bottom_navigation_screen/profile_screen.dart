@@ -86,7 +86,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       SizedBox(height: 10.h),
                       Obx(
                         () => Text(
-                          (homeController.currentStudent.value.firstName) ?? "",
+                          (homeController.currentStudent.value.firstName),
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 18.sp,

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../../controller/Faculty/subject_controller.dart';
 import '../../../core/utils/colors.dart';
 
+// ignore: must_be_immutable
 class PdfUploadScreen extends StatelessWidget {
   final PdfController pdfController = Get.put(PdfController());
 
@@ -92,7 +94,8 @@ class PdfUploadScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDropdown(String label, List<String> items, Function(String?) onChanged) {
+  Widget _buildDropdown(
+      String label, List<String> items, Function(String?) onChanged) {
     // Debugging: print the list of items
     print('Dropdown items: $items');
 
@@ -103,7 +106,8 @@ class PdfUploadScreen extends StatelessWidget {
     }
 
     // Ensure that selected value is from the unique items
-    String? currentValue = label == 'Select Semester' ? selectedSemester : selectedStream;
+    String? currentValue =
+        label == 'Select Semester' ? selectedSemester : selectedStream;
     if (currentValue != null && !uniqueItems.contains(currentValue)) {
       currentValue = null; // Reset if it is not found
     }

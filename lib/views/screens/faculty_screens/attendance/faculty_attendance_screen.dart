@@ -267,9 +267,6 @@ class ClassScreen extends StatefulWidget {
 }
 
 class _ClassScreenState extends State<ClassScreen> {
-  final AttendanceController _attendanceController =
-      Get.put(AttendanceController());
-
   void markAttendance(int index, bool isPresent) {
     setState(() {
       widget.classData['students'][index]['attendance'] =

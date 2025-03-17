@@ -34,11 +34,9 @@ class _StudentAttendanceReportScreenState
       String loggedInUserId = staticUid;
 
       // Get the logged-in student's details
-      String stream = studentHomeController.currentStudent.value.stream ?? "";
-      String semester =
-          studentHomeController.currentStudent.value.semester ?? "";
-      String division =
-          studentHomeController.currentStudent.value.division ?? "";
+      String stream = studentHomeController.currentStudent.value.stream;
+      String semester = studentHomeController.currentStudent.value.semester;
+      String division = studentHomeController.currentStudent.value.division;
 
       if (loggedInUserId.isEmpty ||
           stream.isEmpty ||
