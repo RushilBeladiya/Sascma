@@ -10,7 +10,7 @@ class AttendanceController extends GetxController {
 
   // Mark attendance for a student
   Future<void> markAttendance(String stream, String semester, String division,
-      String subjectId, String studentId, String spid, bool isPresent) async {
+      String subjectId, String spid, bool isPresent) async {
     try {
       String status = isPresent ? 'Present' : 'Absent';
       String date = DateFormat('yyyy-MM-dd').format(DateTime.now());
@@ -34,13 +34,23 @@ class AttendanceController extends GetxController {
   }
 
   // Edit attendance for a student
-  Future<void> editAttendance(
-      String stream, String studentId, bool isPresent) async {
+  Future<void> editAttendance(String stream, String semester, String division,
+      String subjectId, String spid, bool isPresent) async {
     try {
-      await dbRef.child(stream).child(studentId).update({
-        'isPresent': isPresent,
-        'timestamp': DateTime.now().toIso8601String(),
+      String status = isPresent ? 'Present' : 'Absent';
+      String date = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+      await dbRef
+          .child(stream)
+          .child(semester)
+          .child(division)
+          .child(subjectId)
+          .child(date)
+          .child(spid)
+          .update({
+        'status': status,
       });
+
       Get.snackbar("Success", "Attendance edited successfully");
     } catch (e) {
       Get.snackbar("Error", "Failed to edit attendance: $e");
@@ -48,9 +58,20 @@ class AttendanceController extends GetxController {
   }
 
   // Delete attendance for a student
-  Future<void> deleteAttendance(String stream, String studentId) async {
+  Future<void> deleteAttendance(String stream, String semester, String division,
+      String subjectId, String spid) async {
     try {
-      await dbRef.child(stream).child(studentId).remove();
+      String date = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+      await dbRef
+          .child(stream)
+          .child(semester)
+          .child(division)
+          .child(subjectId)
+          .child(date)
+          .child(spid)
+          .remove();
+
       Get.snackbar("Success", "Attendance deleted successfully");
     } catch (e) {
       Get.snackbar("Error", "Failed to delete attendance: $e");
@@ -158,11 +179,10 @@ class AttendanceController extends GetxController {
 
       for (var student in students) {
         String status = (student['attendance'] ?? 'Absent').toString();
-        String studentId = student['id']?.toString() ?? '';
         String spid = student['spid']?.toString() ?? ''; // Fetch numeric SPID
 
-        if (studentId.isEmpty || spid.isEmpty) {
-          throw Exception("Student ID or SPID is missing");
+        if (spid.isEmpty) {
+          throw Exception("Student SPID is missing");
         }
 
         await dbRef

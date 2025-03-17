@@ -19,8 +19,8 @@ class _StudentAttendanceReportScreenState
   final DatabaseReference _dbRef =
       FirebaseDatabase.instance.ref().child('attendance');
 
-  // Static UID
-  final String staticUid = "Cj5MAsU62CalEEoiawekgHbKNdG3";
+  // Static SPID
+  final String staticSpid = "7878787878"; // Static SPID
 
   @override
   void initState() {
@@ -30,15 +30,15 @@ class _StudentAttendanceReportScreenState
 
   void fetchAttendanceRecords() async {
     try {
-      // Use the static UID instead of fetching from the controller
-      String loggedInUserId = staticUid;
+      // Use the static SPID instead of fetching from the controller
+      String loggedInUserSpid = staticSpid;
 
       // Get the logged-in student's details
       String stream = studentHomeController.currentStudent.value.stream;
       String semester = studentHomeController.currentStudent.value.semester;
       String division = studentHomeController.currentStudent.value.division;
 
-      if (loggedInUserId.isEmpty ||
+      if (loggedInUserSpid.isEmpty ||
           stream.isEmpty ||
           semester.isEmpty ||
           division.isEmpty) {
@@ -65,9 +65,9 @@ class _StudentAttendanceReportScreenState
             Map<dynamic, dynamic> students =
                 studentRecords as Map<dynamic, dynamic>;
 
-            // Check if the student's ID matches the static UID
-            if (students.containsKey(loggedInUserId)) {
-              var details = students[loggedInUserId];
+            // Check if the student's SPID matches the static SPID
+            if (students.containsKey(loggedInUserSpid)) {
+              var details = students[loggedInUserSpid];
               attendanceList.add({
                 'date': dateKey.replaceFirst('date_', ''), // Extract date
                 'status': details['status'] ?? 'Unknown',
@@ -127,7 +127,7 @@ class _StudentAttendanceReportScreenState
                         style: TextStyle(
                             fontSize: 18, fontWeight: FontWeight.w600)),
                     SizedBox(height: 4),
-                    Text('ID: $staticUid', // Display the static UID
+                    Text('SPID: $staticSpid', // Display the static SPID
                         style: TextStyle(fontSize: 16, color: Colors.black54)),
                     SizedBox(height: 4),
                     Text('Stream: ${student.stream}',

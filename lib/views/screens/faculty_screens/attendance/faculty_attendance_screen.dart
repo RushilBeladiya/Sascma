@@ -273,10 +273,9 @@ class _ClassScreenState extends State<ClassScreen> {
           isPresent ? 'present' : 'absent';
     });
 
-    String studentId =
-        widget.classData['students'][index]['id']?.toString() ?? '';
-    if (studentId.isEmpty) {
-      Get.snackbar("Error", "Student ID is missing");
+    String spid = widget.classData['students'][index]['spid']?.toString() ?? '';
+    if (spid.isEmpty) {
+      Get.snackbar("Error", "Student SPID is missing");
       return;
     }
 
@@ -290,7 +289,7 @@ class _ClassScreenState extends State<ClassScreen> {
         .child(widget.classData['division'])
         .child(widget.classData['subject'])
         .child(date)
-        .child(studentId)
+        .child(spid)
         .set({
       'status': isPresent ? 'Present' : 'Absent',
     });
@@ -306,9 +305,9 @@ class _ClassScreenState extends State<ClassScreen> {
       );
 
       for (var student in widget.classData['students']) {
-        String studentId = student['id']?.toString() ?? '';
-        if (studentId.isEmpty) {
-          throw Exception("Student ID is missing");
+        String spid = student['spid']?.toString() ?? '';
+        if (spid.isEmpty) {
+          throw Exception("Student SPID is missing");
         }
 
         await FirebaseDatabase.instance
@@ -319,7 +318,7 @@ class _ClassScreenState extends State<ClassScreen> {
             .child(widget.classData['division'])
             .child(widget.classData['subject'])
             .child(date)
-            .child(studentId)
+            .child(spid)
             .set({
           'status': student['attendance'] ?? 'Absent',
         });
