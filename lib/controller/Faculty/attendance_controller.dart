@@ -8,6 +8,7 @@ class AttendanceController extends GetxController {
   final DatabaseReference classRef =
       FirebaseDatabase.instance.ref().child('classes');
 
+  // Mark attendance for a student
   Future<void> markAttendance(String stream, String semester, String division,
       String subjectId, String studentId, String spid, bool isPresent) async {
     try {
@@ -32,6 +33,7 @@ class AttendanceController extends GetxController {
     }
   }
 
+  // Edit attendance for a student
   Future<void> editAttendance(
       String stream, String studentId, bool isPresent) async {
     try {
@@ -45,6 +47,7 @@ class AttendanceController extends GetxController {
     }
   }
 
+  // Delete attendance for a student
   Future<void> deleteAttendance(String stream, String studentId) async {
     try {
       await dbRef.child(stream).child(studentId).remove();
@@ -54,6 +57,7 @@ class AttendanceController extends GetxController {
     }
   }
 
+  // Fetch students for a specific stream, semester, and division
   Future<List<Map<String, dynamic>>> fetchStudents(
       String stream, String semester, String division) async {
     List<Map<String, dynamic>> students = [];
@@ -90,6 +94,7 @@ class AttendanceController extends GetxController {
     return students;
   }
 
+  // Create a new class
   Future<String> createClass(String stream, String semester, String division,
       List<Map<String, dynamic>> students) async {
     try {
@@ -116,11 +121,7 @@ class AttendanceController extends GetxController {
     }
   }
 
-  void deleteClass(String classId) {
-    classRef.child(classId).remove();
-    Get.snackbar("Success", "Class deleted successfully");
-  }
-
+  // Fetch all classes
   Future<List<Map<String, dynamic>>> fetchClasses() async {
     List<Map<String, dynamic>> classes = [];
     try {
@@ -145,6 +146,7 @@ class AttendanceController extends GetxController {
     return classes;
   }
 
+  // Submit attendance records for a class
   Future<void> submitAttendanceRecords(
       String stream,
       String semester,
@@ -182,6 +184,7 @@ class AttendanceController extends GetxController {
     }
   }
 
+  // Fetch attendance records for a specific subject
   Future<List<Map<String, dynamic>>> fetchAttendanceRecords(
       String stream, String semester, String division, String subjectId) async {
     List<Map<String, dynamic>> records = [];

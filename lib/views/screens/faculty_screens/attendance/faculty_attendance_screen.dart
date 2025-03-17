@@ -46,9 +46,10 @@ class _Faculty_AttendanceScreenState extends State<Faculty_AttendanceScreen> {
     }
   }
 
-  void _deleteClass(String classId) {
-    _attendanceController.deleteClass(classId);
-    Get.snackbar("Success", "Class deleted successfully");
+  void _deleteClass(String classId) async {
+    await _dbRef.child(classId).remove();
+    Get.snackbar("Success", "Class deleted successfully",
+        backgroundColor: Colors.green, colorText: Colors.white);
   }
 
   void _createClass() {
@@ -189,150 +190,6 @@ class _Faculty_AttendanceScreenState extends State<Faculty_AttendanceScreen> {
     );
   }
 
-  void _editClass(Map<String, dynamic> classData) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        String? selectedStream = classData['stream'],
-            selectedSemester = classData['semester'],
-            selectedDivision = classData['division'],
-            selectedSubject = classData['subject'];
-        List<Map<String, dynamic>> students = classData['students'];
-        bool isFetching = false;
-
-        return StatefulBuilder(
-          builder: (context, setStateDialog) {
-            return AlertDialog(
-              title: Text('Edit Class'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    DropdownButtonFormField<String>(
-                      decoration: InputDecoration(labelText: 'Stream'),
-                      value: selectedStream,
-                      items: streams.map((stream) {
-                        return DropdownMenuItem(
-                            value: stream, child: Text(stream));
-                      }).toList(),
-                      onChanged: (value) =>
-                          setStateDialog(() => selectedStream = value),
-                    ),
-                    DropdownButtonFormField<String>(
-                      decoration: InputDecoration(labelText: 'Semester'),
-                      value: selectedSemester,
-                      items: semesters.map((sem) {
-                        return DropdownMenuItem(value: sem, child: Text(sem));
-                      }).toList(),
-                      onChanged: (value) =>
-                          setStateDialog(() => selectedSemester = value),
-                    ),
-                    DropdownButtonFormField<String>(
-                      decoration: InputDecoration(labelText: 'Division'),
-                      value: selectedDivision,
-                      items: divisions.map((div) {
-                        return DropdownMenuItem(value: div, child: Text(div));
-                      }).toList(),
-                      onChanged: (value) =>
-                          setStateDialog(() => selectedDivision = value),
-                    ),
-                    DropdownButtonFormField<String>(
-                      decoration: InputDecoration(labelText: 'Subject'),
-                      value: selectedSubject,
-                      items: ['Maths', 'English', 'Gujarati'].map((subj) {
-                        return DropdownMenuItem(value: subj, child: Text(subj));
-                      }).toList(),
-                      onChanged: (value) =>
-                          setStateDialog(() => selectedSubject = value),
-                    ),
-                    SizedBox(height: 10),
-                    ElevatedButton(
-                      onPressed: () async {
-                        if (selectedStream != null &&
-                            selectedSemester != null &&
-                            selectedDivision != null) {
-                          setStateDialog(
-                              () => isFetching = true); // Show loader
-
-                          try {
-                            students =
-                                await _attendanceController.fetchStudents(
-                              selectedStream!,
-                              selectedSemester!,
-                              selectedDivision!,
-                            );
-                            setStateDialog(() => isFetching = false);
-
-                            if (students.isNotEmpty) {
-                              Get.snackbar(
-                                  "Success", "Students fetched successfully!",
-                                  backgroundColor: Colors.green,
-                                  colorText: Colors.white);
-                            } else {
-                              Get.snackbar(
-                                  "Error", "No students found. Try again!",
-                                  backgroundColor: Colors.red,
-                                  colorText: Colors.white);
-                            }
-                          } catch (e) {
-                            setStateDialog(() => isFetching = false);
-                            Get.snackbar("Error",
-                                "Failed to fetch students. Please try again!",
-                                backgroundColor: Colors.red,
-                                colorText: Colors.white);
-                          }
-                        }
-                      },
-                      child: isFetching
-                          ? CircularProgressIndicator(
-                              color: Colors.white) // Loader
-                          : Text('Fetch Students'),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: students.isNotEmpty
-                      ? () async {
-                          final updatedClass = {
-                            'stream': selectedStream,
-                            'semester': selectedSemester,
-                            'division': selectedDivision,
-                            'subject': selectedSubject,
-                            'students': students,
-                          };
-
-                          await _dbRef
-                              .child(classData['key'])
-                              .update(updatedClass);
-
-                          Get.snackbar("Success", "Class updated successfully!",
-                              backgroundColor: Colors.green,
-                              colorText: Colors.white);
-
-                          Navigator.pop(context);
-                        }
-                      : () {
-                          Get.snackbar("Error",
-                              "Fetch students before updating the class!",
-                              backgroundColor: Colors.red,
-                              colorText: Colors.white);
-                        },
-                  child: Text('Update Class'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
   void _openClassScreen(Map<String, dynamic> classData) {
     Navigator.push(
       context,
@@ -378,18 +235,9 @@ class _Faculty_AttendanceScreenState extends State<Faculty_AttendanceScreen> {
                         '${classData['stream']} - Semester ${classData['semester']}',
                         style: TextStyle(fontWeight: FontWeight.bold)),
                     subtitle: Text('Subject: ${classData['subject']}'),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () => _editClass(classData),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => _deleteClass(classData['key']),
-                        ),
-                      ],
+                    trailing: IconButton(
+                      icon: Icon(Icons.delete, color: Colors.red),
+                      onPressed: () => _deleteClass(classData['key']),
                     ),
                     onTap: () => _openClassScreen(classData),
                   ),
@@ -440,17 +288,13 @@ class _ClassScreenState extends State<ClassScreen> {
     FirebaseDatabase.instance
         .ref()
         .child('attendance')
-        .child(studentId)
         .child(widget.classData['stream'])
         .child(widget.classData['semester'])
         .child(widget.classData['division'])
         .child(widget.classData['subject'])
-        .child('date_$date')
-        .child('spid_$studentId') // Use spid here
+        .child(date)
+        .child(studentId)
         .set({
-      'userid': studentId,
-      'name':
-          '${widget.classData['students'][index]['firstName']} ${widget.classData['students'][index]['lastName']}',
       'status': isPresent ? 'Present' : 'Absent',
     });
   }
@@ -464,12 +308,7 @@ class _ClassScreenState extends State<ClassScreen> {
         barrierDismissible: false,
       );
 
-      List<Map<String, dynamic>> studentRecords =
-          (widget.classData['students'] as List<dynamic>)
-              .map((e) => Map<String, dynamic>.from(e as Map))
-              .toList();
-
-      for (var student in studentRecords) {
+      for (var student in widget.classData['students']) {
         String studentId = student['id']?.toString() ?? '';
         if (studentId.isEmpty) {
           throw Exception("Student ID is missing");
@@ -478,26 +317,20 @@ class _ClassScreenState extends State<ClassScreen> {
         await FirebaseDatabase.instance
             .ref()
             .child('attendance')
-            .child(studentId)
             .child(widget.classData['stream'])
             .child(widget.classData['semester'])
             .child(widget.classData['division'])
             .child(widget.classData['subject'])
-            .child('date_$date')
-            .child('spid_$studentId') // Use spid here
+            .child(date)
+            .child(studentId)
             .set({
-          'name': '${student['firstName']} ${student['lastName']}',
-          'userid': studentId,
           'status': student['attendance'] ?? 'Absent',
         });
       }
 
       Get.back();
-
-      // Show success message
       Get.snackbar('Success', 'Attendance records submitted.');
     } catch (e) {
-      // Close the loading dialog if submission fails
       Get.back();
       Get.snackbar('Error', 'Failed to submit attendance: $e');
     }
