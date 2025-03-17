@@ -1,9 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:sascma/controller/Faculty/attendance_controller.dart';
-import 'package:sascma/controller/Faculty/home/faculty_home_controller.dart';
 import 'package:sascma/models/faculty_model.dart';
 
 class Faculty_AttendanceScreen extends StatefulWidget {
@@ -16,8 +16,6 @@ class _Faculty_AttendanceScreenState extends State<Faculty_AttendanceScreen> {
   final DatabaseReference _dbRef = FirebaseDatabase.instance.ref("classes");
   final AttendanceController _attendanceController =
       Get.put(AttendanceController());
-  final FacultyHomeController _facultyHomeController =
-      Get.put(FacultyHomeController());
   bool isLoading = false; // Loader state
   String? facultyName;
   FacultyModel? currentFaculty;
@@ -43,7 +41,20 @@ class _Faculty_AttendanceScreenState extends State<Faculty_AttendanceScreen> {
   @override
   void initState() {
     super.initState();
-    _facultyHomeController.fetchFacultyData();
+    _loadCurrentFaculty();
+  }
+
+  Future<void> _loadCurrentFaculty() async {
+    String? phoneNumber = FirebaseAuth.instance.currentUser?.phoneNumber;
+    if (phoneNumber != null) {
+      currentFaculty = await getFacultyByPhone(phoneNumber);
+      if (currentFaculty != null) {
+        setState(() {
+          facultyName =
+              "${currentFaculty!.firstName} ${currentFaculty!.lastName} ${currentFaculty!.surName}";
+        });
+      }
+    }
   }
 
   Future<void> fetchStudents() async {
@@ -84,9 +95,9 @@ class _Faculty_AttendanceScreenState extends State<Faculty_AttendanceScreen> {
   }
 
   void _createClass() async {
-    String? phoneNumber = _facultyHomeController.facultyModel.value.phoneNumber;
+    String? phoneNumber = FirebaseAuth.instance.currentUser?.phoneNumber;
 
-    if (phoneNumber == null || phoneNumber.isEmpty) {
+    if (phoneNumber == null) {
       Get.snackbar("Error", "Faculty is not logged in.");
       return;
     }
@@ -255,31 +266,27 @@ class _Faculty_AttendanceScreenState extends State<Faculty_AttendanceScreen> {
       appBar: AppBar(title: Text('Class Manager')),
       body: Column(
         children: [
-          Obx(() {
-            if (_facultyHomeController.facultyModel.value.uid.isEmpty) {
-              return Center(child: CircularProgressIndicator());
-            }
-            return Padding(
+          if (currentFaculty != null)
+            Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Faculty: ${_facultyHomeController.facultyModel.value.firstName} ${_facultyHomeController.facultyModel.value.lastName} ${_facultyHomeController.facultyModel.value.surName}",
+                    "Faculty: ${currentFaculty!.firstName} ${currentFaculty!.lastName} ${currentFaculty!.surName}",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   Text(
-                    "Phone: ${_facultyHomeController.facultyModel.value.phoneNumber}",
+                    "Phone: ${currentFaculty!.phoneNumber}",
                     style: TextStyle(fontSize: 16),
                   ),
                   Text(
-                    "Email: ${_facultyHomeController.facultyModel.value.email}",
+                    "Email: ${currentFaculty!.email}",
                     style: TextStyle(fontSize: 16),
                   ),
                 ],
               ),
-            );
-          }),
+            ),
           Expanded(
             child: StreamBuilder(
               stream: _dbRef.onValue,
@@ -298,12 +305,6 @@ class _Faculty_AttendanceScreenState extends State<Faculty_AttendanceScreen> {
                 List<Map<String, dynamic>> createdClasses =
                     classMap.entries.map((e) {
                   return {'key': e.key, ...Map<String, dynamic>.from(e.value)};
-                }).toList();
-
-                // Filter classes based on the current faculty's phone number
-                createdClasses = createdClasses.where((classData) {
-                  return classData['facultyPhoneNumber'] ==
-                      _facultyHomeController.facultyModel.value.phoneNumber;
                 }).toList();
 
                 return ListView.builder(
