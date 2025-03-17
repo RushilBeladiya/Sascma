@@ -267,6 +267,21 @@ class ClassScreen extends StatefulWidget {
 }
 
 class _ClassScreenState extends State<ClassScreen> {
+  DateTime selectedDate = DateTime.now();
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != selectedDate)
+      setState(() {
+        selectedDate = picked;
+      });
+  }
+
   void markAttendance(int index, bool isPresent) {
     setState(() {
       widget.classData['students'][index]['attendance'] =
@@ -279,7 +294,7 @@ class _ClassScreenState extends State<ClassScreen> {
       return;
     }
 
-    String date = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    String date = DateFormat('yyyy-MM-dd').format(selectedDate);
 
     FirebaseDatabase.instance
         .ref()
@@ -297,7 +312,7 @@ class _ClassScreenState extends State<ClassScreen> {
 
   void _confirmSubmission() async {
     try {
-      String date = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      String date = DateFormat('yyyy-MM-dd').format(selectedDate);
 
       Get.dialog(
         Center(child: CircularProgressIndicator()),
@@ -344,9 +359,22 @@ class _ClassScreenState extends State<ClassScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Text(
-              'Subject: ${widget.classData['subject']}',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            child: Column(
+              children: [
+                Text(
+                  'Subject: ${widget.classData['subject']}',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: () => _selectDate(context),
+                  child: Text('Select Date'),
+                ),
+                Text(
+                  "Selected Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}",
+                  style: TextStyle(fontSize: 16),
+                ),
+              ],
             ),
           ),
           Expanded(
