@@ -43,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen>
             onTap: (index) {
               homeController.bottomScreenIndex.value = index;
               if (index == 1) {
-                Get.to(() => StudentAttendanceScreen());
+                Get.to(() => StudentAttendanceReportScreen());
               } else if (index == 3) {
                 Get.to(() => FeePaymentScreen());
               }

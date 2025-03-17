@@ -1,3 +1,4 @@
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -39,6 +40,26 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
     print(
         "----------------------${homeController.currentStudent.value.firstName}");
     print("----------------------${studentModel.email}");
+    fetchAttendanceRecords(); // Fetch attendance records on init
+  }
+
+  void fetchAttendanceRecords() async {
+    try {
+      DatabaseEvent event = await FirebaseDatabase.instance
+          .ref()
+          .child('attendance_records')
+          .once();
+
+      if (event.snapshot.value != null) {
+        Map<dynamic, dynamic> data =
+            event.snapshot.value as Map<dynamic, dynamic>;
+        homeController.attendanceReports.value = data.values
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+      }
+    } catch (e) {
+      Get.snackbar("Error", "Failed to fetch attendance records: $e");
+    }
   }
 
   @override
@@ -221,12 +242,18 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                         .where((record) =>
                                             record['isPresent'] == true)
                                         .length /
-                                    homeController
-                                        .currentStudent.value.attendance.length;
+                                    (homeController.currentStudent.value
+                                                .attendance.length ==
+                                            0
+                                        ? 1
+                                        : homeController.currentStudent.value
+                                            .attendance.length);
                                 return LinearPercentIndicator(
                                   width: 140.w,
                                   lineHeight: 5.h,
-                                  percent: attendancePercentage,
+                                  percent: attendancePercentage.isNaN
+                                      ? 0.0
+                                      : attendancePercentage,
                                   leading: Text(
                                     "${(attendancePercentage * 100).toStringAsFixed(1)}%",
                                     style: TextStyle(
@@ -272,7 +299,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                 ),
                 GestureDetector(
                   onTap: () async {
-                    await Get.to(() => const StudentAttendanceScreen());
+                    await Get.to(() => StudentAttendanceReportScreen());
                   },
                   child: buildDashboardItem(
                     title: "Attendance",

@@ -1,5 +1,6 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 class AttendanceController extends GetxController {
   final DatabaseReference dbRef =
@@ -7,16 +8,49 @@ class AttendanceController extends GetxController {
   final DatabaseReference classRef =
       FirebaseDatabase.instance.ref().child('classes');
 
-  Future<void> markAttendance(
-      String stream, String studentId, bool isPresent) async {
+  Future<void> markAttendance(String stream, String semester, String division,
+      String subjectId, String studentId, String spid, bool isPresent) async {
     try {
-      await dbRef.child(stream).child(studentId).set({
-        'isPresent': isPresent,
-        'timestamp': DateTime.now().toIso8601String(),
+      String status = isPresent ? 'Present' : 'Absent';
+      String date = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+      await dbRef
+          .child(stream)
+          .child(semester)
+          .child(division)
+          .child(subjectId)
+          .child(date)
+          .child(spid) // Use numeric SPID here
+          .set({
+        'status': status,
+        'spid': spid, // Include numeric SPID in the record
       });
+
       Get.snackbar("Success", "Attendance marked successfully");
     } catch (e) {
       Get.snackbar("Error", "Failed to mark attendance: $e");
+    }
+  }
+
+  Future<void> editAttendance(
+      String stream, String studentId, bool isPresent) async {
+    try {
+      await dbRef.child(stream).child(studentId).update({
+        'isPresent': isPresent,
+        'timestamp': DateTime.now().toIso8601String(),
+      });
+      Get.snackbar("Success", "Attendance edited successfully");
+    } catch (e) {
+      Get.snackbar("Error", "Failed to edit attendance: $e");
+    }
+  }
+
+  Future<void> deleteAttendance(String stream, String studentId) async {
+    try {
+      await dbRef.child(stream).child(studentId).remove();
+      Get.snackbar("Success", "Attendance deleted successfully");
+    } catch (e) {
+      Get.snackbar("Error", "Failed to delete attendance: $e");
     }
   }
 
@@ -30,14 +64,22 @@ class AttendanceController extends GetxController {
           .orderByChild('stream')
           .equalTo(stream)
           .once();
-      if (event.snapshot.value != null) {
+
+      if (event.snapshot.value != null &&
+          event.snapshot.value is Map<dynamic, dynamic>) {
         Map<dynamic, dynamic> data =
             event.snapshot.value as Map<dynamic, dynamic>;
+
         data.forEach((key, value) {
           if (value['semester'] == semester && value['division'] == division) {
             students.add({
               'id': key,
-              'data': value,
+              'firstName': value['firstName'] ?? 'Unknown',
+              'lastName': value['lastName'] ?? 'Student',
+              'stream': value['stream'],
+              'semester': value['semester'],
+              'division': value['division'],
+              'spid': value['spid'] ?? '', // Fetch numeric SPID
             });
           }
         });
@@ -48,35 +90,52 @@ class AttendanceController extends GetxController {
     return students;
   }
 
-  String createClass(String stream, String semester, String division,
-      List<Map<String, dynamic>> students) {
-    String classId = classRef.push().key!;
-    classRef.child(classId).set({
-      'stream': stream,
-      'semester': semester,
-      'division': division,
-      'students': students,
-    });
-    return classId;
+  Future<String> createClass(String stream, String semester, String division,
+      List<Map<String, dynamic>> students) async {
+    try {
+      String classId = classRef.push().key!;
+      await classRef.child(classId).set({
+        'stream': stream,
+        'semester': semester,
+        'division': division,
+        'students': students
+            .map((student) => {
+                  'id': student['id'],
+                  'firstName': student['firstName'],
+                  'lastName': student['lastName'],
+                  'stream': student['stream'],
+                  'semester': student['semester'],
+                  'division': student['division'],
+                  'spid': student['spid'], // Ensure numeric SPID is included
+                })
+            .toList(),
+      });
+      return classId;
+    } catch (e) {
+      throw Exception("Failed to create class: $e");
+    }
   }
 
   void deleteClass(String classId) {
     classRef.child(classId).remove();
+    Get.snackbar("Success", "Class deleted successfully");
   }
 
   Future<List<Map<String, dynamic>>> fetchClasses() async {
     List<Map<String, dynamic>> classes = [];
     try {
       DatabaseEvent event = await classRef.once();
-      if (event.snapshot.value != null) {
+      if (event.snapshot.value != null &&
+          event.snapshot.value is Map<dynamic, dynamic>) {
         Map<dynamic, dynamic> data =
             event.snapshot.value as Map<dynamic, dynamic>;
+
         data.forEach((key, value) {
           classes.add({
             'id': key,
-            'stream': value['stream'],
-            'semester': value['semester'],
-            'division': value['division'],
+            'stream': value['stream'] ?? 'Unknown',
+            'semester': value['semester'] ?? 'Unknown',
+            'division': value['division'] ?? 'Unknown',
           });
         });
       }
@@ -84,5 +143,76 @@ class AttendanceController extends GetxController {
       Get.snackbar("Error", "Failed to fetch classes: $e");
     }
     return classes;
+  }
+
+  Future<void> submitAttendanceRecords(
+      String stream,
+      String semester,
+      String division,
+      String subjectId,
+      List<Map<String, dynamic>> students) async {
+    try {
+      String date = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+      for (var student in students) {
+        String status = (student['attendance'] ?? 'Absent').toString();
+        String studentId = student['id']?.toString() ?? '';
+        String spid = student['spid']?.toString() ?? ''; // Fetch numeric SPID
+
+        if (studentId.isEmpty || spid.isEmpty) {
+          throw Exception("Student ID or SPID is missing");
+        }
+
+        await dbRef
+            .child(stream)
+            .child(semester)
+            .child(division)
+            .child(subjectId)
+            .child(date)
+            .child(spid)
+            .set({
+          'status': status,
+          'spid': spid,
+        });
+      }
+
+      Get.snackbar("Success", "Attendance records submitted successfully");
+    } catch (e) {
+      Get.snackbar("Error", "Failed to submit attendance records: $e");
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> fetchAttendanceRecords(
+      String stream, String semester, String division, String subjectId) async {
+    List<Map<String, dynamic>> records = [];
+    try {
+      DatabaseEvent event = await dbRef
+          .child(stream)
+          .child(semester)
+          .child(division)
+          .child(subjectId)
+          .once();
+
+      if (event.snapshot.value != null &&
+          event.snapshot.value is Map<dynamic, dynamic>) {
+        Map<dynamic, dynamic> data =
+            event.snapshot.value as Map<dynamic, dynamic>;
+
+        data.forEach((date, attendance) {
+          if (attendance is Map<dynamic, dynamic>) {
+            attendance.forEach((spid, record) {
+              records.add({
+                'date': date,
+                'spid': spid.toString(),
+                'status': record['status'],
+              });
+            });
+          }
+        });
+      }
+    } catch (e) {
+      Get.snackbar("Error", "Failed to fetch attendance records: $e");
+    }
+    return records;
   }
 }

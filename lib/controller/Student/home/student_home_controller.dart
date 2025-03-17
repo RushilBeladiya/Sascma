@@ -41,11 +41,15 @@ class StudentHomeController extends GetxController {
     attendance: [],
   ).obs;
 
+  var attendanceReports = <Map<String, dynamic>>[].obs;
+
   @override
   void onInit() {
     super.onInit();
     fetchCurrentUserData();
     fetchFeePayments();
+    fetchAttendanceReports();
+    fetchCurrentUserAttendance(); // Fetch attendance records
   }
 
   final RxList bottomScreenList = [
@@ -137,12 +141,76 @@ class StudentHomeController extends GetxController {
     }
   }
 
+  Future<void> fetchCurrentUserAttendance() async {
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        DatabaseEvent event = await FirebaseDatabase.instance
+            .ref()
+            .child('attendance')
+            .child(user.uid)
+            .once();
+
+        if (event.snapshot.value != null) {
+          currentStudent.value.attendance =
+              (event.snapshot.value as Map<dynamic, dynamic>)
+                  .values
+                  .map((e) => e as Map<String, dynamic>)
+                  .toList();
+        } else {
+          currentStudent.value.attendance = [];
+        }
+      }
+    } catch (e) {
+      Get.snackbar("Error", "Failed to fetch attendance records: $e");
+    }
+  }
+
   void fetchFeePayments() {
     // Fetch fee payments from an API or database and populate the feePayments list
     feePayments.value = [
       FeePayment(amount: 2000, status: 'Unpaid'),
       // Add more fee payments as needed
     ];
+  }
+
+  void fetchAttendanceReports() async {
+    try {
+      DatabaseEvent event = await FirebaseDatabase.instance
+          .ref()
+          .child('attendance_reports')
+          .once();
+
+      if (event.snapshot.value != null) {
+        Map<dynamic, dynamic> data =
+            event.snapshot.value as Map<dynamic, dynamic>;
+        attendanceReports.value = data.values
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+      }
+    } catch (e) {
+      Get.snackbar("Error", "Failed to fetch attendance reports: $e");
+    }
+  }
+
+  void trackLiveAttendance() {
+    // Logic to track live attendance
+    print("Tracking live attendance...");
+  }
+
+  void generateAttendanceReport(
+      {String? date, String? subject, String? student}) {
+    // Logic to generate attendance report based on date, subject, and student
+    print("Generating attendance report...");
+    if (date != null) {
+      print("Filtering by date: $date");
+    }
+    if (subject != null) {
+      print("Filtering by subject: $subject");
+    }
+    if (student != null) {
+      print("Filtering by student: $student");
+    }
   }
 }
 

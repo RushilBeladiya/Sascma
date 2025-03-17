@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:sascma/views/screens/faculty_screens/attendance/attendance_screen.dart';
+import 'package:sascma/views/screens/faculty_screens/attendance/faculty_attendance_screen.dart';
 import 'package:sascma/views/screens/faculty_screens/home/fee_payment_status_screen.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -316,11 +316,8 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () async {
-                    await Get.to(() => AttendanceScreen(
-                        stream:
-                            facultyHomeController.facultyModel.value.stream ??
-                                ''));
+                  onTap: () {
+                    Get.to(() => Faculty_AttendanceScreen());
                   },
                   child: buildDashboardItem(
                     title: "Attendance",
