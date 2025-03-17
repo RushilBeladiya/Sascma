@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:sascma/controller/Faculty/attendance_controller.dart';
+import 'package:sascma/controller/Faculty/home/faculty_home_controller.dart';
+import 'package:sascma/models/faculty_model.dart';
 
 class Faculty_AttendanceScreen extends StatefulWidget {
   @override
@@ -14,7 +16,11 @@ class _Faculty_AttendanceScreenState extends State<Faculty_AttendanceScreen> {
   final DatabaseReference _dbRef = FirebaseDatabase.instance.ref("classes");
   final AttendanceController _attendanceController =
       Get.put(AttendanceController());
+  final FacultyHomeController _facultyHomeController =
+      Get.put(FacultyHomeController());
   bool isLoading = false; // Loader state
+  String? facultyName;
+  FacultyModel? currentFaculty;
 
   List<Map<String, dynamic>> students = [];
   String? selectedStream;
@@ -34,6 +40,12 @@ class _Faculty_AttendanceScreenState extends State<Faculty_AttendanceScreen> {
   ];
   List<String> divisions = ['A', 'B', 'C', 'D'];
 
+  @override
+  void initState() {
+    super.initState();
+    _facultyHomeController.fetchFacultyData();
+  }
+
   Future<void> fetchStudents() async {
     if (selectedStream != null &&
         selectedSemester != null &&
@@ -46,13 +58,49 @@ class _Faculty_AttendanceScreenState extends State<Faculty_AttendanceScreen> {
     }
   }
 
+  Future<FacultyModel?> getFacultyByPhone(String phoneNumber) async {
+    DatabaseReference ref = FirebaseDatabase.instance.ref("faculty");
+
+    final snapshot = await ref.get();
+    if (snapshot.exists) {
+      Map<String, dynamic> facultyData =
+          Map<String, dynamic>.from(snapshot.value as Map);
+
+      for (var key in facultyData.keys) {
+        var faculty = facultyData[key];
+
+        if (faculty['phoneNumber'] == phoneNumber) {
+          return FacultyModel.fromMap(Map<String, dynamic>.from(faculty));
+        }
+      }
+    }
+    return null; // Return null if not found
+  }
+
   void _deleteClass(String classId) async {
     await _dbRef.child(classId).remove();
     Get.snackbar("Success", "Class deleted successfully",
         backgroundColor: Colors.green, colorText: Colors.white);
   }
 
-  void _createClass() {
+  void _createClass() async {
+    String? phoneNumber = _facultyHomeController.facultyModel.value.phoneNumber;
+
+    if (phoneNumber == null || phoneNumber.isEmpty) {
+      Get.snackbar("Error", "Faculty is not logged in.");
+      return;
+    }
+
+    FacultyModel? faculty = await getFacultyByPhone(phoneNumber);
+
+    if (faculty == null) {
+      Get.snackbar("Error", "Faculty details not found.");
+      return;
+    }
+
+    // Step 3: Store faculty details
+    facultyName = "${faculty.firstName} ${faculty.lastName} ${faculty.surName}";
+
     showDialog(
       context: context,
       builder: (context) {
@@ -164,6 +212,9 @@ class _Faculty_AttendanceScreenState extends State<Faculty_AttendanceScreen> {
                             'division': selectedDivision,
                             'subject': selectedSubject,
                             'students': students,
+                            'facultyName': facultyName,
+                            'facultyPhoneNumber':
+                                phoneNumber, // Store faculty phone number
                           };
 
                           await _dbRef.push().set(newClass);
@@ -202,50 +253,90 @@ class _Faculty_AttendanceScreenState extends State<Faculty_AttendanceScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Class Manager')),
-      body: StreamBuilder(
-        stream: _dbRef.onValue,
-        builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
-          if (!snapshot.hasData || snapshot.data!.snapshot.value == null) {
-            return Center(
-              child: Text("No Classes Created",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            );
-          }
-
-          Map<String, dynamic> classMap =
-              Map<String, dynamic>.from(snapshot.data!.snapshot.value as Map);
-          List<Map<String, dynamic>> createdClasses = classMap.entries.map((e) {
-            return {'key': e.key, ...Map<String, dynamic>.from(e.value)};
-          }).toList();
-
-          return ListView.builder(
-            itemCount: createdClasses.length,
-            itemBuilder: (context, index) {
-              var classData = createdClasses[index];
-              return Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                child: Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  child: ListTile(
-                    contentPadding: EdgeInsets.all(12),
-                    title: Text(
-                        '${classData['stream']} - Semester ${classData['semester']}',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text('Subject: ${classData['subject']}'),
-                    trailing: IconButton(
-                      icon: Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => _deleteClass(classData['key']),
-                    ),
-                    onTap: () => _openClassScreen(classData),
+      body: Column(
+        children: [
+          Obx(() {
+            if (_facultyHomeController.facultyModel.value.uid.isEmpty) {
+              return Center(child: CircularProgressIndicator());
+            }
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Faculty: ${_facultyHomeController.facultyModel.value.firstName} ${_facultyHomeController.facultyModel.value.lastName} ${_facultyHomeController.facultyModel.value.surName}",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                ),
-              );
-            },
-          );
-        },
+                  Text(
+                    "Phone: ${_facultyHomeController.facultyModel.value.phoneNumber}",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  Text(
+                    "Email: ${_facultyHomeController.facultyModel.value.email}",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ],
+              ),
+            );
+          }),
+          Expanded(
+            child: StreamBuilder(
+              stream: _dbRef.onValue,
+              builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
+                if (!snapshot.hasData ||
+                    snapshot.data!.snapshot.value == null) {
+                  return Center(
+                    child: Text("No Classes Created",
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
+                  );
+                }
+
+                Map<String, dynamic> classMap = Map<String, dynamic>.from(
+                    snapshot.data!.snapshot.value as Map);
+                List<Map<String, dynamic>> createdClasses =
+                    classMap.entries.map((e) {
+                  return {'key': e.key, ...Map<String, dynamic>.from(e.value)};
+                }).toList();
+
+                // Filter classes based on the current faculty's phone number
+                createdClasses = createdClasses.where((classData) {
+                  return classData['facultyPhoneNumber'] ==
+                      _facultyHomeController.facultyModel.value.phoneNumber;
+                }).toList();
+
+                return ListView.builder(
+                  itemCount: createdClasses.length,
+                  itemBuilder: (context, index) {
+                    var classData = createdClasses[index];
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                      child: Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        child: ListTile(
+                          contentPadding: EdgeInsets.all(12),
+                          title: Text(
+                              '${classData['stream']} - Semester ${classData['semester']}',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          subtitle: Text('Subject: ${classData['subject']}'),
+                          trailing: IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _deleteClass(classData['key']),
+                          ),
+                          onTap: () => _openClassScreen(classData),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

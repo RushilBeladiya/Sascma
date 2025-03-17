@@ -1,6 +1,7 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:sascma/models/faculty_model.dart';
 
 class AttendanceController extends GetxController {
   final DatabaseReference dbRef =
@@ -217,5 +218,24 @@ class AttendanceController extends GetxController {
       Get.snackbar("Error", "Failed to fetch attendance records: $e");
     }
     return records;
+  }
+
+  Future<FacultyModel?> getFacultyByPhone(String phoneNumber) async {
+    DatabaseReference ref = FirebaseDatabase.instance.ref("faculty");
+
+    final snapshot = await ref.get();
+    if (snapshot.exists) {
+      Map<String, dynamic> facultyData =
+          Map<String, dynamic>.from(snapshot.value as Map);
+
+      for (var key in facultyData.keys) {
+        var faculty = facultyData[key];
+
+        if (faculty['phoneNumber'] == phoneNumber) {
+          return FacultyModel.fromMap(Map<String, dynamic>.from(faculty));
+        }
+      }
+    }
+    return null; // Return null if not found
   }
 }
