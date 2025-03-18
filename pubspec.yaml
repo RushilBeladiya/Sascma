@@ -61,6 +61,7 @@ dependencies:
   webview_flutter: ^4.10.0
   table_calendar: ^3.2.0    
   stripe: ^4.11.0
+  razorpay_flutter: ^1.4.0
 
 
 

@@ -4,6 +4,7 @@ class FeePayment {
   String studentName; // Add this field
   String amount;
   String status; // Paid or Unpaid
+  String paymentId; // Add this field
 
   FeePayment({
     required this.id,
@@ -11,6 +12,7 @@ class FeePayment {
     this.studentName = '', // Initialize with an empty string
     required this.amount,
     required this.status,
+    this.paymentId = '', // Initialize with an empty string
   });
 
   factory FeePayment.fromMap(Map<dynamic, dynamic> map) {
@@ -20,6 +22,7 @@ class FeePayment {
       studentName: map['studentName'] ?? '', // Add this line
       amount: map['amount'] ?? '',
       status: map['status'] ?? '',
+      paymentId: map['paymentId'] ?? '', // Add this line
     );
   }
 
@@ -30,6 +33,7 @@ class FeePayment {
       'studentName': studentName, // Add this line
       'amount': amount,
       'status': status,
+      'paymentId': paymentId, // Add this line
     };
   }
 }
