@@ -32,7 +32,67 @@ class _CreateClassScreenState extends State<CreateClassScreen> {
     'Semester 7',
     'Semester 8'
   ];
-  List<String> divisions = ['A', 'B', 'C', 'D'];
+  List<String> divisions = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+
+  // Define subjects for each stream and semester
+  final Map<String, Map<String, List<String>>> streamSemesterSubjects = {
+    'BCA': {
+      'Semester 1': ['Maths', 'English', 'Programming'],
+      'Semester 2': ['Data Structures', 'Discrete Maths', 'DBMS'],
+      'Semester 3': ['Algorithms', 'Operating Systems', 'Web Development'],
+      'Semester 4': ['Software Engineering', 'Networking', 'Java'],
+      'Semester 5': ['Python', 'AI', 'Cloud Computing'],
+      'Semester 6': ['Mobile App Development', 'Big Data', 'Cyber Security'],
+      'Semester 7': ['Project Management', 'IoT', 'Blockchain'],
+      'Semester 8': ['Capstone Project', 'Internship'],
+    },
+    'BBA': {
+      'Semester 1': ['Principles of Management', 'Economics', 'Accounting'],
+      'Semester 2': ['Business Law', 'Marketing', 'Financial Management'],
+      'Semester 3': ['HR Management', 'Operations Management', 'Statistics'],
+      'Semester 4': ['Entrepreneurship', 'Business Ethics', 'Taxation'],
+      'Semester 5': [
+        'Strategic Management',
+        'International Business',
+        'Banking'
+      ],
+      'Semester 6': [
+        'Digital Marketing',
+        'Supply Chain Management',
+        'Auditing'
+      ],
+      'Semester 7': ['Project Work', 'Leadership', 'Consulting'],
+      'Semester 8': ['Internship', 'Research Project'],
+    },
+    'B.COM': {
+      'Semester 1': [
+        'Financial Accounting',
+        'Business Economics',
+        'Business Law'
+      ],
+      'Semester 2': [
+        'Corporate Accounting',
+        'Statistics',
+        'Business Communication'
+      ],
+      'Semester 3': ['Cost Accounting', 'Income Tax', 'Banking'],
+      'Semester 4': ['Auditing', 'Management Accounting', 'Marketing'],
+      'Semester 5': ['E-Commerce', 'Financial Management', 'HR Management'],
+      'Semester 6': ['International Business', 'Entrepreneurship', 'Taxation'],
+      'Semester 7': ['Project Work', 'Strategic Management', 'Consulting'],
+      'Semester 8': ['Internship', 'Research Project'],
+    },
+  };
+
+  List<String> getSubjects() {
+    if (selectedStream != null &&
+        selectedSemester != null &&
+        streamSemesterSubjects.containsKey(selectedStream) &&
+        streamSemesterSubjects[selectedStream]!.containsKey(selectedSemester)) {
+      return streamSemesterSubjects[selectedStream]![selectedSemester]!;
+    }
+    return [];
+  }
 
   Future<void> fetchStudents() async {
     if (selectedStream != null &&
@@ -100,14 +160,25 @@ class _CreateClassScreenState extends State<CreateClassScreen> {
               items: streams.map((stream) {
                 return DropdownMenuItem(value: stream, child: Text(stream));
               }).toList(),
-              onChanged: (value) => setState(() => selectedStream = value),
+              onChanged: (value) {
+                setState(() {
+                  selectedStream = value;
+                  selectedSemester = null; // Reset semester on stream change
+                  selectedSubject = null; // Reset subject on stream change
+                });
+              },
             ),
             DropdownButtonFormField<String>(
               decoration: InputDecoration(labelText: 'Semester'),
               items: semesters.map((sem) {
                 return DropdownMenuItem(value: sem, child: Text(sem));
               }).toList(),
-              onChanged: (value) => setState(() => selectedSemester = value),
+              onChanged: (value) {
+                setState(() {
+                  selectedSemester = value;
+                  selectedSubject = null; // Reset subject on semester change
+                });
+              },
             ),
             DropdownButtonFormField<String>(
               decoration: InputDecoration(labelText: 'Division'),
@@ -118,7 +189,7 @@ class _CreateClassScreenState extends State<CreateClassScreen> {
             ),
             DropdownButtonFormField<String>(
               decoration: InputDecoration(labelText: 'Subject'),
-              items: ['Maths', 'English', 'Gujarati'].map((subj) {
+              items: getSubjects().map((subj) {
                 return DropdownMenuItem(value: subj, child: Text(subj));
               }).toList(),
               onChanged: (value) => setState(() => selectedSubject = value),
