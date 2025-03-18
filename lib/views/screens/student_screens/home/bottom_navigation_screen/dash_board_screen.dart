@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:sascma/views/screens/student_screens/attendance/student_attendance_screen.dart';
 import 'package:sascma/views/screens/student_screens/home/bottom_navigation_screen/profile_screen.dart';
-import 'package:sascma/views/screens/student_screens/home/fee_payment_screen.dart';
+import 'package:sascma/views/screens/student_screens/payment/fee_payment_screen.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../../controller/Auth/auth_controller.dart';

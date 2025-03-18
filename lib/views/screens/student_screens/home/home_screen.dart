@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:sascma/views/screens/student_screens/attendance/student_attendance_screen.dart';
-import 'package:sascma/views/screens/student_screens/home/fee_payment_screen.dart';
+import 'package:sascma/views/screens/student_screens/payment/fee_payment_screen.dart';
 
 import '../../../../controller/Student/home/student_home_controller.dart';
 import '../../../../core/utils/colors.dart';

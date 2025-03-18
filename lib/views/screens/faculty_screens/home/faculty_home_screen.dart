@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:sascma/views/screens/faculty_screens/attendance/faculty_attendance_screen.dart';
-import 'package:sascma/views/screens/faculty_screens/home/fee_payment_status_screen.dart';
+import 'package:sascma/views/screens/faculty_screens/payment/fee_payment_status_screen.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../controller/Auth/auth_controller.dart';
