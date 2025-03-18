@@ -106,16 +106,54 @@ class FacultyHomeController extends GetxController {
 
   void fetchStudentsByStream(String stream) async {
     try {
-      DatabaseEvent event =
-          await studentRef.orderByChild('stream').equalTo(stream).once();
-      if (event.snapshot.value != null) {
-        var data = event.snapshot.value as Map<dynamic, dynamic>;
-        var studentList =
-            data.values.map((e) => StudentModel.fromMap(e)).toList();
-        students.assignAll(studentList);
+      DatabaseEvent studentEvent = await FirebaseDatabase.instance
+          .ref()
+          .child('student')
+          .orderByChild('stream')
+          .equalTo(stream)
+          .once();
+
+      if (studentEvent.snapshot.value != null) {
+        var studentData = studentEvent.snapshot.value as Map<dynamic, dynamic>?;
+
+        if (studentData != null) {
+          List<StudentModel> fetchedStudents = [];
+          for (var entry in studentData.entries) {
+            StudentModel student = StudentModel.fromMap(entry.value);
+            student.uid = entry.key; // Assign UID
+
+            // ✅ Check payment status from payment_gateway
+            DatabaseEvent paymentEvent = await FirebaseDatabase.instance
+                .ref()
+                .child('payment_gateway')
+                .orderByChild('spid')
+                .equalTo(student.spid)
+                .once();
+
+            if (paymentEvent.snapshot.value != null) {
+              var paymentData =
+                  paymentEvent.snapshot.value as Map<dynamic, dynamic>;
+
+              var paymentStatus =
+                  paymentData.values.first['status'] ?? 'Unpaid';
+              student.status = paymentStatus == 'Paid' ? 'Paid' : 'Unpaid';
+            } else {
+              student.status = 'Unpaid';
+            }
+
+            fetchedStudents.add(student);
+          }
+
+          // ✅ Update students list with fetched data
+          students.value = fetchedStudents;
+        } else {
+          students.clear();
+        }
+      } else {
+        students.clear();
       }
     } catch (e) {
-      Get.snackbar("Error", "Failed to load students");
+      Get.snackbar("Error", "Failed to fetch students: $e");
     }
   }
 }

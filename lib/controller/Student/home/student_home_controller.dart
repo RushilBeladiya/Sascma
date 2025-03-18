@@ -22,8 +22,18 @@ class StudentHomeController extends GetxController {
   final ImagePicker picker = ImagePicker();
   var isLoading = false.obs;
 
+  // void updatePaymentStatus(String paymentId, String status) {
+  //   final paymentIndex = feePayments.indexWhere((payment) => payment.id == paymentId);
+  //   if (paymentIndex != -1) {
+  //     feePayments[paymentIndex].status = status;
+  //     feePayments.refresh(); // Update the UI
+  //   }
+  // }
+
   final DatabaseReference dbRef =
       FirebaseDatabase.instance.ref().child('student');
+  final DatabaseReference paymentRef =
+      FirebaseDatabase.instance.ref().child('fee_payments');
 
   var feePayments = <FeePayment>[].obs;
   var currentStudent = StudentModel(
@@ -166,12 +176,54 @@ class StudentHomeController extends GetxController {
     }
   }
 
-  void fetchFeePayments() {
-    // Fetch fee payments from an API or database and populate the feePayments list
-    feePayments.value = [
-      FeePayment(amount: 2000, status: 'Unpaid'),
-      // Add more fee payments as needed
-    ];
+  Future<void> fetchFeePayments() async {
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        DatabaseEvent event = await paymentRef.child(user.uid).once();
+
+        if (event.snapshot.value != null) {
+          Map<dynamic, dynamic> paymentsData =
+              event.snapshot.value as Map<dynamic, dynamic>;
+
+          feePayments.value = paymentsData.entries.map((e) {
+            final paymentId = e.key;
+            final paymentData = e.value as Map<dynamic, dynamic>;
+
+            return FeePayment(
+              id: paymentId,
+              amount: paymentData['amount'] ?? 0,
+              status: paymentData['status'] ?? 'Unpaid',
+            );
+          }).toList();
+        }
+      }
+    } catch (e) {
+      Get.snackbar("Error", "Failed to load fee payments: $e",
+          backgroundColor: Colors.red, colorText: Colors.white);
+    }
+  }
+
+  Future<void> updatePaymentStatus(String paymentId, String status) async {
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await paymentRef.child(user.uid).child(paymentId).update({
+          'status': status,
+        });
+
+        // Update local UI
+        final paymentIndex =
+            feePayments.indexWhere((payment) => payment.id == paymentId);
+        if (paymentIndex != -1) {
+          feePayments[paymentIndex].status = status;
+          feePayments.refresh();
+        }
+      }
+    } catch (e) {
+      Get.snackbar("Error", "Failed to update payment status: $e",
+          backgroundColor: Colors.red, colorText: Colors.white);
+    }
   }
 
   void fetchAttendanceReports() async {
@@ -215,8 +267,9 @@ class StudentHomeController extends GetxController {
 }
 
 class FeePayment {
+  final String id; // Dynamic payment ID
   final int amount;
-  final String status;
+  String status;
 
-  FeePayment({required this.amount, required this.status});
+  FeePayment({required this.id, required this.amount, required this.status});
 }
