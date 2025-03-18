@@ -6,7 +6,8 @@ import 'package:sascma/controller/Faculty/attendance_controller.dart';
 class CreateClassScreen extends StatefulWidget {
   final String? facultyPhoneNumber;
 
-  CreateClassScreen({required this.facultyPhoneNumber});
+  const CreateClassScreen({required this.facultyPhoneNumber, Key? key})
+      : super(key: key);
 
   @override
   _CreateClassScreenState createState() => _CreateClassScreenState();
@@ -34,7 +35,6 @@ class _CreateClassScreenState extends State<CreateClassScreen> {
   ];
   List<String> divisions = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 
-  // Define subjects for each stream and semester
   final Map<String, Map<String, List<String>>> streamSemesterSubjects = {
     'BCA': {
       'Semester 1': ['Maths', 'English', 'Programming'],
@@ -109,23 +109,23 @@ class _CreateClassScreenState extends State<CreateClassScreen> {
           Get.snackbar("Success", "Students fetched successfully!",
               backgroundColor: Colors.green, colorText: Colors.white);
         } else {
-          Get.snackbar("Error", "No students found. Try again!",
-              backgroundColor: Colors.red, colorText: Colors.white);
+          Get.snackbar("No Students", "No students found. Try again!",
+              backgroundColor: Colors.orange, colorText: Colors.white);
         }
       } catch (e) {
         setState(() => isFetching = false);
-        Get.snackbar("Error", "Failed to fetch students. Please try again!",
+        Get.snackbar("Error", "Failed to fetch students. Try again!",
             backgroundColor: Colors.red, colorText: Colors.white);
       }
     } else {
-      Get.snackbar("Error", "Please select stream, semester, and division.",
-          backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar("Warning", "Select Stream, Semester, and Division.",
+          backgroundColor: Colors.orange, colorText: Colors.white);
     }
   }
 
   Future<void> saveClass() async {
     if (students.isEmpty) {
-      Get.snackbar("Error", "Fetch students before saving the class!",
+      Get.snackbar("Error", "Fetch students before saving!",
           backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
@@ -141,88 +141,117 @@ class _CreateClassScreenState extends State<CreateClassScreen> {
 
     await _dbRef.push().set(newClass);
 
-    Get.snackbar("Success", "Class saved with students!",
+    Get.snackbar("Success", "Class saved successfully!",
         backgroundColor: Colors.green, colorText: Colors.white);
 
-    Navigator.pop(context); // Navigate back to the faculty screen
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Create Class')),
-      body: Padding(
+      appBar: AppBar(
+        title: Text('Create Class', style: TextStyle(fontSize: 20)),
+        backgroundColor: Colors.blueAccent,
+      ),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            DropdownButtonFormField<String>(
-              decoration: InputDecoration(labelText: 'Stream'),
-              items: streams.map((stream) {
-                return DropdownMenuItem(value: stream, child: Text(stream));
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  selectedStream = value;
-                  selectedSemester = null; // Reset semester on stream change
-                  selectedSubject = null; // Reset subject on stream change
-                });
-              },
+            _buildDropdownCard('Stream', streams, selectedStream, (value) {
+              setState(() {
+                selectedStream = value;
+                selectedSemester = null;
+                selectedSubject = null;
+              });
+            }),
+            _buildDropdownCard('Semester', semesters, selectedSemester,
+                (value) {
+              setState(() {
+                selectedSemester = value;
+                selectedSubject = null;
+              });
+            }),
+            _buildDropdownCard('Division', divisions, selectedDivision,
+                (value) => setState(() => selectedDivision = value)),
+            _buildDropdownCard('Subject', getSubjects(), selectedSubject,
+                (value) {
+              setState(() => selectedSubject = value);
+            }),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: fetchStudents,
+                  icon: Icon(Icons.refresh),
+                  label: Text('Fetch Students'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orangeAccent,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: saveClass,
+                  icon: Icon(Icons.save),
+                  label: Text('Save Class'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            DropdownButtonFormField<String>(
-              decoration: InputDecoration(labelText: 'Semester'),
-              items: semesters.map((sem) {
-                return DropdownMenuItem(value: sem, child: Text(sem));
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  selectedSemester = value;
-                  selectedSubject = null; // Reset subject on semester change
-                });
-              },
-            ),
-            DropdownButtonFormField<String>(
-              decoration: InputDecoration(labelText: 'Division'),
-              items: divisions.map((div) {
-                return DropdownMenuItem(value: div, child: Text(div));
-              }).toList(),
-              onChanged: (value) => setState(() => selectedDivision = value),
-            ),
-            DropdownButtonFormField<String>(
-              decoration: InputDecoration(labelText: 'Subject'),
-              items: getSubjects().map((subj) {
-                return DropdownMenuItem(value: subj, child: Text(subj));
-              }).toList(),
-              onChanged: (value) => setState(() => selectedSubject = value),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: fetchStudents,
-              child: isFetching
-                  ? CircularProgressIndicator(color: Colors.white)
-                  : Text('Fetch Students'),
-            ),
-            SizedBox(height: 20),
-            Expanded(
-              child: students.isEmpty
-                  ? Center(child: Text("No Students Found"))
-                  : ListView.builder(
-                      itemCount: students.length,
-                      itemBuilder: (context, index) {
-                        var student = students[index];
-                        return ListTile(
-                          leading: Icon(Icons.person),
+            const SizedBox(height: 20),
+            students.isEmpty
+                ? Center(child: Text("No Students Found"))
+                : ListView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: students.length,
+                    itemBuilder: (context, index) {
+                      var student = students[index];
+                      return Card(
+                        elevation: 3,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: Colors.blue,
+                            child: Icon(Icons.person, color: Colors.white),
+                          ),
                           title: Text(
                               '${student['firstName']} ${student['lastName']}'),
-                        );
-                      },
-                    ),
-            ),
-            ElevatedButton(
-              onPressed: saveClass,
-              child: Text('Save Class'),
-            ),
+                        ),
+                      );
+                    },
+                  ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDropdownCard(String label, List<String> items, String? value,
+      void Function(String?) onChanged) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: DropdownButtonFormField<String>(
+        decoration: InputDecoration(
+            labelText: label, contentPadding: EdgeInsets.all(12)),
+        value: value,
+        items: items
+            .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+            .toList(),
+        onChanged: onChanged,
       ),
     );
   }

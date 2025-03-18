@@ -5,13 +5,13 @@ import 'package:sascma/controller/Faculty/home/faculty_home_controller.dart';
 import 'package:sascma/views/screens/faculty_screens/attendance/Classdetailsscreen.dart';
 import 'package:sascma/views/screens/faculty_screens/attendance/CreateClassScreen.dart';
 
-class Faculty_AttendanceScreen extends StatefulWidget {
+class FacultyAttendanceScreen extends StatefulWidget {
   @override
-  _Faculty_AttendanceScreenState createState() =>
-      _Faculty_AttendanceScreenState();
+  _FacultyAttendanceScreenState createState() =>
+      _FacultyAttendanceScreenState();
 }
 
-class _Faculty_AttendanceScreenState extends State<Faculty_AttendanceScreen> {
+class _FacultyAttendanceScreenState extends State<FacultyAttendanceScreen> {
   final DatabaseReference _dbRef = FirebaseDatabase.instance.ref("classes");
   final FacultyHomeController _facultyHomeController =
       Get.put(FacultyHomeController());
@@ -31,7 +31,13 @@ class _Faculty_AttendanceScreenState extends State<Faculty_AttendanceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Class Manager')),
+      appBar: AppBar(
+        title: Text(
+          'Class Manager',
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.blueAccent,
+      ),
       body: Column(
         children: [
           Obx(() {
@@ -40,25 +46,36 @@ class _Faculty_AttendanceScreenState extends State<Faculty_AttendanceScreen> {
             }
             return Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Faculty: ${_facultyHomeController.facultyModel.value.firstName} ${_facultyHomeController.facultyModel.value.lastName} ${_facultyHomeController.facultyModel.value.surName}",
+              child: Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Colors.blue,
+                    child: Icon(Icons.person, color: Colors.white),
+                  ),
+                  title: Text(
+                    "${_facultyHomeController.facultyModel.value.firstName} ${_facultyHomeController.facultyModel.value.lastName} ${_facultyHomeController.facultyModel.value.surName}",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  Text(
-                    "Phone: ${_facultyHomeController.facultyModel.value.phoneNumber}",
-                    style: TextStyle(fontSize: 16),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                          "Phone: ${_facultyHomeController.facultyModel.value.phoneNumber}",
+                          style: TextStyle(fontSize: 14)),
+                      Text(
+                          "Email: ${_facultyHomeController.facultyModel.value.email}",
+                          style: TextStyle(fontSize: 14)),
+                    ],
                   ),
-                  Text(
-                    "Email: ${_facultyHomeController.facultyModel.value.email}",
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ],
+                ),
               ),
             );
           }),
+
+          // Class List Section
           Expanded(
             child: StreamBuilder(
               stream: _dbRef.onValue,
@@ -66,9 +83,11 @@ class _Faculty_AttendanceScreenState extends State<Faculty_AttendanceScreen> {
                 if (!snapshot.hasData ||
                     snapshot.data!.snapshot.value == null) {
                   return Center(
-                    child: Text("No Classes Created",
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
+                    child: Text(
+                      "No Classes Created",
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
                   );
                 }
 
@@ -79,28 +98,49 @@ class _Faculty_AttendanceScreenState extends State<Faculty_AttendanceScreen> {
                   return {'key': e.key, ...Map<String, dynamic>.from(e.value)};
                 }).toList();
 
-                // Filter classes based on the current faculty's phone number
+                // Filter classes by faculty phone number
                 createdClasses = createdClasses.where((classData) {
                   return classData['facultyPhoneNumber'] ==
                       _facultyHomeController.facultyModel.value.phoneNumber;
                 }).toList();
 
+                if (createdClasses.isEmpty) {
+                  return Center(
+                    child: Text(
+                      "No classes found for this faculty",
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  );
+                }
+
                 return ListView.builder(
                   itemCount: createdClasses.length,
                   itemBuilder: (context, index) {
                     var classData = createdClasses[index];
+
                     return Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
+                          horizontal: 16, vertical: 8),
                       child: Card(
                         elevation: 4,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
                         child: ListTile(
+                          contentPadding: const EdgeInsets.all(16),
+                          leading: CircleAvatar(
+                            backgroundColor: Colors.blue,
+                            child: Icon(Icons.school, color: Colors.white),
+                          ),
                           title: Text(
-                              '${classData['stream']} - Semester ${classData['semester']}',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: Text('Subject: ${classData['subject']}'),
+                            '${classData['stream']} - ${classData['semester']}',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Text(
+                            'Subject: ${classData['subject']}',
+                            style: TextStyle(fontSize: 16),
+                          ),
                           trailing: IconButton(
                             icon: Icon(Icons.delete, color: Colors.red),
                             onPressed: () => _deleteClass(classData['key']),
@@ -125,6 +165,8 @@ class _Faculty_AttendanceScreenState extends State<Faculty_AttendanceScreen> {
           ),
         ],
       ),
+
+      // Floating Action Button
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
@@ -136,7 +178,8 @@ class _Faculty_AttendanceScreenState extends State<Faculty_AttendanceScreen> {
                     )),
           );
         },
-        child: Icon(Icons.add),
+        backgroundColor: Colors.green,
+        child: Icon(Icons.add, color: Colors.white),
       ),
     );
   }

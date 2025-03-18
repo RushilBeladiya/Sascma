@@ -317,7 +317,7 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                 ),
                 GestureDetector(
                   onTap: () {
-                    Get.to(() => Faculty_AttendanceScreen());
+                    Get.to(() => FacultyAttendanceScreen());
                   },
                   child: buildDashboardItem(
                     title: "Attendance",
