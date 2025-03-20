@@ -144,45 +144,6 @@ class AuthController extends GetxController {
     }
   }
 
-  Future<void> loginStudent(String email, String spid) async {
-    try {
-      await FirebaseAuth.instance.signOut();
-
-      // Query the database to verify both email and SPID
-      var query = dbRefStudent.orderByChild('email').equalTo(email);
-      DatabaseEvent event = await query.once();
-
-      if (event.snapshot.exists) {
-        Map<dynamic, dynamic> userData =
-            event.snapshot.value as Map<dynamic, dynamic>;
-        Map<dynamic, dynamic> user = userData.values.first;
-
-        // Verify the SPID matches
-        if (user['spid'] == spid) {
-          UserCredential userCredential = await auth.signInWithEmailAndPassword(
-            email: email,
-            password: spid,
-          );
-
-          String uid = userCredential.user!.uid;
-
-          // SharedPreferences prefs = await SharedPreferences.getInstance();
-          // await prefs.setBool('isLoggedIn', true);
-          // await prefs.setString('userToken', uid);
-
-          Get.offAll(() => HomeScreen());
-        } else {
-          Get.snackbar("Error", "SPID does not match.");
-        }
-      } else {
-        Get.snackbar("Error", "Email not found.");
-      }
-    } catch (e) {
-      Get.snackbar("Login Error", e.toString());
-      print(e);
-    }
-  }
-
   Future<void> loginAdminAndFaculty(String email, String phoneNumber) async {
     try {
       await FirebaseAuth.instance.signOut();
@@ -263,6 +224,60 @@ class AuthController extends GetxController {
     } catch (e) {
       Get.snackbar("Error", "Failed to delete user: $e",
           snackPosition: SnackPosition.BOTTOM);
+    }
+  }
+
+  Future<void> sendVerificationEmail(String email) async {
+    try {
+      await auth.currentUser?.sendEmailVerification();
+      Get.snackbar(
+          'Verification Email', 'A verification email has been sent to $email');
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to send verification email: $e');
+    }
+  }
+
+  /// ✅ Student login with email verification
+  Future<void> loginStudent(String email, String spid) async {
+    try {
+      await auth.signOut();
+
+      // Query the database to verify email and SPID
+      var query = dbRefStudent.orderByChild('email').equalTo(email);
+      DatabaseEvent event = await query.once();
+
+      if (event.snapshot.exists) {
+        Map<dynamic, dynamic> userData =
+            event.snapshot.value as Map<dynamic, dynamic>;
+        Map<dynamic, dynamic> user = userData.values.first;
+
+        if (user['spid'] == spid) {
+          UserCredential userCredential = await auth.signInWithEmailAndPassword(
+            email: email,
+            password: spid,
+          );
+
+          User? currentUser = auth.currentUser;
+
+          if (currentUser != null) {
+            await currentUser.reload();
+            if (currentUser.emailVerified) {
+              Get.offAll(() => HomeScreen());
+            } else {
+              sendVerificationEmail(email);
+              Get.snackbar(
+                  "Email Verification", "Please verify your email first.");
+            }
+          }
+        } else {
+          Get.snackbar("Error", "SPID does not match.");
+        }
+      } else {
+        Get.snackbar("Error", "Email not found.");
+      }
+    } catch (e) {
+      Get.snackbar("Login Error", e.toString());
+      print(e);
     }
   }
 }
