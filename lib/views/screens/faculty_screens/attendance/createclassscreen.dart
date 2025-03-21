@@ -130,6 +130,28 @@ class _CreateClassScreenState extends State<CreateClassScreen> {
       return;
     }
 
+    // Check if a class for the selected subject already exists
+    DatabaseEvent event = await _dbRef
+        .orderByChild('facultyPhoneNumber')
+        .equalTo(widget.facultyPhoneNumber)
+        .once();
+
+    if (event.snapshot.value != null) {
+      Map<String, dynamic> classMap =
+          Map<String, dynamic>.from(event.snapshot.value as Map);
+      bool classExists = classMap.values.any((classData) {
+        return classData['subject'] == selectedSubject &&
+            classData['division'] == selectedDivision;
+      });
+
+      if (classExists) {
+        Get.snackbar("Error",
+            "Class for this subject in the same division already exists",
+            backgroundColor: Colors.red, colorText: Colors.white);
+        return;
+      }
+    }
+
     final newClass = {
       'stream': selectedStream,
       'semester': selectedSemester,

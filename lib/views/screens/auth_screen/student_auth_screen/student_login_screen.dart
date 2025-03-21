@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:sascma/views/screens/auth_screen/admin_auth_screen/admin_login_screen.dart';
 
 import '../../../../controller/Auth/auth_controller.dart';
 import '../../../../core/utils/colors.dart';
@@ -210,6 +211,27 @@ class _StudentLoginScreenState extends State<StudentLoginScreen> {
                   ),
                 ),
               ),
+            ),
+
+            const SizedBox(height: 20),
+
+            /// ✅ Admin Login Section
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text("Are you an admin? "),
+                GestureDetector(
+                  onTap: () => Get.to(() => AdminLoginScreen()),
+                  child: Text(
+                    "Login Here",
+                    style: TextStyle(
+                      color: AppColor.primaryColor,
+                      fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ],
             ),
 
             const Spacer(),

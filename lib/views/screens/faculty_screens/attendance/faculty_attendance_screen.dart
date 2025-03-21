@@ -133,7 +133,7 @@ class _FacultyAttendanceScreenState extends State<FacultyAttendanceScreen> {
                             child: Icon(Icons.school, color: Colors.white),
                           ),
                           title: Text(
-                            '${classData['stream']} - ${classData['semester']}',
+                            '${classData['stream']} - ${classData['semester']}-${classData['division']}', // Added \n for new line
                             style: TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.bold),
                           ),

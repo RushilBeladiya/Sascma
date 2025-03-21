@@ -15,6 +15,8 @@ class _FeePaymentScreenState extends State<FeePaymentScreen> {
   bool _isLoading = false;
   bool _isPaid = false; // Track payment status
   late DatabaseReference _paymentRef; // Firebase reference
+  late DatabaseReference _feeRef; // Firebase reference for fee structure
+  String _feeAmount = 'NaN'; // Default fee amount
 
   @override
   void initState() {
@@ -24,17 +26,50 @@ class _FeePaymentScreenState extends State<FeePaymentScreen> {
     _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
     _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
 
-    /// ✅ Firebase reference
+    /// ✅ Firebase references
     _paymentRef = FirebaseDatabase.instance.ref().child('payment_gateway');
+    _feeRef = FirebaseDatabase.instance.ref().child('streams');
 
     /// ✅ Check for payment status on app start
     _checkPaymentStatus();
+
+    /// ✅ Fetch fee amount based on student's stream and semester
+    _fetchFeeAmount();
   }
 
   @override
   void dispose() {
     _razorpay.clear();
     super.dispose();
+  }
+
+  /// ✅ Fetch fee amount based on student's stream and semester
+  Future<void> _fetchFeeAmount() async {
+    final student = studentHomeController.currentStudent.value;
+
+    try {
+      DatabaseEvent event = await _feeRef
+          .child(student.stream)
+          .child('Semester ${student.semester}')
+          .once();
+
+      if (event.snapshot.value != null) {
+        final data = Map<String, dynamic>.from(
+            event.snapshot.value as Map<dynamic, dynamic>);
+        setState(() {
+          _feeAmount = data['amount'].toString();
+        });
+      } else {
+        setState(() {
+          _feeAmount = 'NaN'; // If amount is not found
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _feeAmount = 'NaN'; // If an error occurs
+      });
+      Get.snackbar('Error', 'Failed to fetch fee amount: $e');
+    }
   }
 
   /// ✅ Check payment status in Firebase
@@ -65,7 +100,7 @@ class _FeePaymentScreenState extends State<FeePaymentScreen> {
     final paymentData = {
       'spid': student.spid,
       'studentName': '${student.firstName} ${student.lastName}',
-      'amount': '20125',
+      'amount': _feeAmount,
       'status': 'Paid',
       'method': 'UPI',
       'transactionId': response.paymentId,
@@ -87,7 +122,7 @@ class _FeePaymentScreenState extends State<FeePaymentScreen> {
     if (_isPaid) {
       Get.snackbar(
         'Success',
-        'Payment of ₹20,125 was successful!',
+        'Payment of ₹$_feeAmount was successful!',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.green,
         colorText: Colors.white,
@@ -125,9 +160,20 @@ class _FeePaymentScreenState extends State<FeePaymentScreen> {
   void _openRazorpay() {
     final student = studentHomeController.currentStudent.value;
 
+    if (_feeAmount == 'NaN') {
+      Get.snackbar(
+        'Error',
+        'Fee amount is not available. Please contact admin.',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
     var options = {
       'key': 'rzp_test_xnFqX02uZhe2DM', // Razorpay test key
-      'amount': 2012500, // Amount in paise
+      'amount': int.parse(_feeAmount) * 100, // Amount in paise
       'name': 'SASCMA',
       'description': 'Fee Payment',
       'prefill': {
@@ -216,7 +262,7 @@ class _FeePaymentScreenState extends State<FeePaymentScreen> {
                     child: ListTile(
                       contentPadding: EdgeInsets.all(16),
                       title: Text(
-                        'Amount: ₹20,125',
+                        'Amount: ₹$_feeAmount',
                         style: TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold),
                       ),

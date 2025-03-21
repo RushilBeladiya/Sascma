@@ -1,7 +1,9 @@
-
-import 'package:flutter/material.dart';import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
+
 import '../../../../controller/Administrator/home/admin_home_controller.dart';
 import '../../../../controller/Auth/auth_controller.dart';
 import '../../../../controller/Auth/dateTimeController.dart';
@@ -13,6 +15,7 @@ import '../../student_screens/home/college_info_screen.dart';
 import '../../student_screens/home/contact_us_screen.dart';
 import '../../student_screens/setting_screen/settings_screen.dart';
 import '../../student_screens/setting_screen/webview_screen.dart';
+import 'set_payment_amount_screen.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
@@ -27,6 +30,13 @@ class _AdminHomeScreenState extends State<AdminHomeScreen>
   final AuthController authController = Get.find();
   final AdminHomeController adminHomeController =
       Get.put(AdminHomeController());
+  late DatabaseReference _streamsRef;
+
+  @override
+  void initState() {
+    super.initState();
+    _streamsRef = FirebaseDatabase.instance.ref().child('streams');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -293,9 +303,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen>
                   title: "Sports",
                   image: AppImage.sports,
                 ),
-                buildDashboardItem(
-                  title: "Fee payment",
-                  image: AppImage.feePayment,
+                GestureDetector(
+                  onTap: () async {
+                    await Get.to(() => SetPaymentAmountScreen());
+                  },
+                  child: buildDashboardItem(
+                    title: "Fee payment",
+                    image: AppImage.feePayment,
+                  ),
                 ),
                 GestureDetector(
                   onTap: () {
@@ -347,7 +362,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen>
               leading: Icon(Icons.person),
               title: const Text('Add Faculty'),
               onTap: () async {
-                await Get.to(() =>  FacultyRegistrationScreen()); // Close the drawer
+                await Get.to(
+                    () => FacultyRegistrationScreen()); // Close the drawer
               },
             ),
             ListTile(
@@ -355,6 +371,13 @@ class _AdminHomeScreenState extends State<AdminHomeScreen>
               title: const Text('Profile'),
               onTap: () async {
                 await Get.to(() => const ProfileScreen()); // Close the drawer
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.payment),
+              title: const Text('Set Payment Amount'),
+              onTap: () async {
+                await Get.to(() => SetPaymentAmountScreen());
               },
             ),
             ListTile(
@@ -396,6 +419,57 @@ class _AdminHomeScreenState extends State<AdminHomeScreen>
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _showSetAmountDialog() async {
+    final TextEditingController streamController = TextEditingController();
+    final TextEditingController amountController = TextEditingController();
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Set Payment Amount'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: streamController,
+                decoration: InputDecoration(labelText: 'Stream'),
+              ),
+              TextField(
+                controller: amountController,
+                decoration: InputDecoration(labelText: 'Amount'),
+                keyboardType: TextInputType.number,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                final stream = streamController.text.trim();
+                final amount = int.tryParse(amountController.text.trim()) ?? 0;
+
+                if (stream.isNotEmpty && amount > 0) {
+                  await _streamsRef.child(stream).set({
+                    'stream': stream,
+                    'amount': amount,
+                  });
+                  Navigator.of(context).pop();
+                }
+              },
+              child: Text('Set'),
+            ),
+          ],
+        );
+      },
     );
   }
 
