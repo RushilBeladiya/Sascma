@@ -1,6 +1,6 @@
 class AppImage
 {
-  static const appLogo = "assets/splash_icon/sascma logo.png";
+  static const appLogo = "assets/splash_icon/app_Logo.png";
   static const collegeImage = "assets/college_image/college.jpeg";
 
   static const user = "assets/dashboard/user.png";

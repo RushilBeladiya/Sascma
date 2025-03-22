@@ -5,6 +5,7 @@ class FacultyModel {
   String surName;
   String phoneNumber;
   String email;
+  String position;
   String profileImageUrl;
 
   FacultyModel({
@@ -14,18 +15,20 @@ class FacultyModel {
     required this.surName,
     required this.phoneNumber,
     required this.email,
+    required this.position,
     required this.profileImageUrl,
   });
 
-  factory FacultyModel.fromMap(Map<dynamic, dynamic> map) {
+  factory FacultyModel.fromJson(Map<dynamic, dynamic> json) {
     return FacultyModel(
-      uid: map['uid'] ?? '',
-      firstName: map['firstName'] ?? '',
-      lastName: map['lastName'] ?? '',
-      surName: map['surName'] ?? '',
-      phoneNumber: map['phoneNumber'] ?? '',
-      email: map['email'] ?? '',
-      profileImageUrl: map['profileImageUrl'] ?? '',
+      uid: json['uid'] ?? '',
+      firstName: json['firstName'] ?? '',
+      lastName: json['lastName'] ?? '',
+      surName: json['surName'] ?? '',
+      phoneNumber: json['phoneNumber'] ?? '',
+      email: json['email'] ?? '',
+      position: json['position'] ?? '',
+      profileImageUrl: json['profileImageUrl'] ?? '',
     );
   }
 
@@ -37,6 +40,7 @@ class FacultyModel {
       'surName': surName,
       'phoneNumber': phoneNumber,
       'email': email,
+      'position': position,
       'profileImageUrl': profileImageUrl,
     };
   }

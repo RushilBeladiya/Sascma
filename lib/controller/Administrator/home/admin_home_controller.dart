@@ -4,11 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../models/admin_Model.dart';
+import '../../../models/faculty_model.dart';
+import '../service/faculty_service.dart';
 
 class AdminHomeController extends GetxController
 {
   final DatabaseReference dbRef =
   FirebaseDatabase.instance.ref().child('college_department');
+  var facultyList = <FacultyModel>[].obs;
+  var isLoading = false.obs;
+
+
+  final DatabaseReference dbRefFaculty = FirebaseDatabase.instance.ref("faculty");
   var adminModel = AdminModel(
     uid: '',
     firstName: '',
@@ -20,11 +27,14 @@ class AdminHomeController extends GetxController
   ).obs;
 
 
+
   @override
   void onInit() {
-    super.onInit();
     fetchAdminData();
+    fetchFacultyData();
+    super.onInit();
   }
+
 
   Future<void> fetchAdminData() async {
     try {
@@ -51,6 +61,18 @@ class AdminHomeController extends GetxController
       Get.snackbar("Error", "Failed to load user data",
           backgroundColor: Colors.red, colorText: Colors.white);
       print("Error fetching user data: $e");
+    }
+  }
+
+  Future<void> fetchFacultyData() async {
+    try {
+      isLoading.value = true;
+      List<FacultyModel> data = await FacultyService.getFacultyList();
+      facultyList.assignAll(data);
+    } catch (e) {
+      print("Error fetching faculty data: $e");
+    } finally {
+      isLoading.value = false;
     }
   }
 }
