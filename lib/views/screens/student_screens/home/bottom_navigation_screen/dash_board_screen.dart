@@ -371,7 +371,8 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                 ),
                 GestureDetector(
                   onTap: () {
-                    Get.to(() => FeePaymentScreen());
+                    Get.to(() => FeePaymentScreen(
+                        studentUID: homeController.currentStudent.value.uid));
                   },
                   child: buildDashboardItem(
                     title: "Fee payment",

@@ -45,7 +45,8 @@ class _HomeScreenState extends State<HomeScreen>
               if (index == 1) {
                 Get.to(() => StudentAttendanceReportScreen());
               } else if (index == 3) {
-                Get.to(() => FeePaymentScreen());
+                Get.to(() => FeePaymentScreen(
+                    studentUID: homeController.currentStudent.value.uid));
               }
             },
             items: [
