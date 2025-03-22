@@ -101,7 +101,7 @@ flutter:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
   assets:
-    - assets/splash_icon/sascma logo.png
+    - assets/splash_icon/app_Logo.png
     - assets/dashboard/
 #    - assets/college_image/internet.jpeg
   # An image asset can refer to one or more resolution-specific "variants", see

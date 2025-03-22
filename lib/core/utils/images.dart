@@ -1,5 +1,4 @@
-class AppImage
-{
+class AppImage {
   static const appLogo = "assets/splash_icon/app_Logo.png";
   static const collegeImage = "assets/college_image/college.jpeg";
 
@@ -7,7 +6,7 @@ class AppImage
 
   static const studentInfo = "assets/dashboard/student_info.png";
   static const attandence = "assets/dashboard/attendence.png";
-  static const  timetable = "assets/dashboard/time_table.png";
+  static const timetable = "assets/dashboard/time_table.png";
   static const subjects = "assets/dashboard/subject.png";
   static const lectures = "assets/dashboard/lecture.png";
   static const result = "assets/dashboard/result.png";
@@ -20,5 +19,4 @@ class AppImage
   static const gallery = "assets/dashboard/gallery.png";
   static const feePayment = "assets/dashboard/payment.png";
   static const contactus = "assets/dashboard/contact_us.png";
-
 }
