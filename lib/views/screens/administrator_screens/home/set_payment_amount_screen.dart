@@ -1,6 +1,6 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:sascma/core/utils/colors.dart';
 
 class SetPaymentAmountScreen extends StatefulWidget {
   @override
@@ -8,69 +8,122 @@ class SetPaymentAmountScreen extends StatefulWidget {
 }
 
 class _SetPaymentAmountScreenState extends State<SetPaymentAmountScreen> {
-  final TextEditingController amountController = TextEditingController();
-  late DatabaseReference _streamsRef;
-  String _selectedStream = 'BCA';
-  String _selectedSemester = 'Semester 1';
-  Map<String, dynamic> _amounts = {};
+  String? selectedStream;
+  String? selectedSemester;
+  final TextEditingController _amountController = TextEditingController();
+
+  final List<String> streams = ['BCA', 'BCOM', 'BBA'];
+  final List<String> semesters =
+      List.generate(8, (index) => 'Semester ${index + 1}');
+
+  final DatabaseReference _databaseRef =
+      FirebaseDatabase.instance.ref().child('payments');
+
+  Map<String, Map<String, String>> paymentData = {};
+  bool isSettingAmount = false;
 
   @override
   void initState() {
     super.initState();
-    _streamsRef = FirebaseDatabase.instance.ref().child('streams');
-    _fetchAmounts();
+    _fetchRealTimeData();
   }
 
-  /// ✅ Fetch Data from Firebase
-  Future<void> _fetchAmounts() async {
-    try {
-      DatabaseEvent event = await _streamsRef.once();
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
 
-      if (event.snapshot.value != null) {
-        Map<String, dynamic> tempData = Map<String, dynamic>.from(
-          event.snapshot.value as Map<dynamic, dynamic>,
+  void _fetchRealTimeData() {
+    _databaseRef.onValue.listen((event) {
+      final data = event.snapshot.value as Map<dynamic, dynamic>?;
+
+      if (data != null) {
+        setState(() {
+          paymentData = _parsePaymentData(data);
+        });
+      } else {
+        setState(() {
+          paymentData = {};
+        });
+      }
+    });
+  }
+
+  Map<String, Map<String, String>> _parsePaymentData(
+      Map<dynamic, dynamic> data) {
+    final Map<String, Map<String, String>> result = {};
+
+    data.forEach((stream, semesters) {
+      if (semesters is Map<dynamic, dynamic>) {
+        final semesterMap = <String, String>{};
+
+        semesters.forEach((semester, payment) {
+          if (payment is Map && payment.containsKey('amount')) {
+            semesterMap[semester.toString()] = payment['amount'].toString();
+          }
+        });
+
+        result[stream.toString()] = semesterMap;
+      }
+    });
+
+    return result;
+  }
+
+  Future<void> _savePayment() async {
+    if (selectedStream != null &&
+        selectedSemester != null &&
+        _amountController.text.isNotEmpty) {
+      setState(() {
+        isSettingAmount = true;
+      });
+
+      Map<String, dynamic> paymentData = {
+        'amount': _amountController.text,
+        'timestamp': DateTime.now().toIso8601String(),
+      };
+
+      try {
+        await _databaseRef
+            .child(selectedStream!)
+            .child(selectedSemester!)
+            .set(paymentData);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Payment data saved successfully!')),
         );
 
         setState(() {
-          _amounts = tempData.map((stream, semesters) {
-            return MapEntry(
-              stream,
-              Map<String, dynamic>.from(semesters as Map<dynamic, dynamic>),
-            );
-          });
+          selectedStream = null;
+          selectedSemester = null;
+          _amountController.clear();
+          isSettingAmount = false;
+        });
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save data: $e')),
+        );
+        setState(() {
+          isSettingAmount = false;
         });
       }
-    } catch (error) {
-      print("Error fetching amounts: $error");
-      Get.snackbar('Error', 'Failed to fetch amounts');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all fields')),
+      );
     }
   }
 
-  /// ✅ Set or Update Amount
-  Future<void> _setAmount() async {
-    final amount = int.tryParse(amountController.text.trim()) ?? 0;
-
-    if (amount > 0) {
-      await _streamsRef.child(_selectedStream).child(_selectedSemester).set({
-        'amount': amount,
-      });
-
-      Get.snackbar(
-        'Success',
-        'Amount updated successfully for $_selectedStream - $_selectedSemester',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
+  Future<void> _deletePayment(String stream, String semester) async {
+    try {
+      await _databaseRef.child(stream).child(semester).remove();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Payment data deleted successfully!')),
       );
-
-      _fetchAmounts(); // Refresh the amounts
-    } else {
-      Get.snackbar(
-        'Error',
-        'Please enter a valid amount',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to delete data: $e')),
       );
     }
   }
@@ -79,113 +132,171 @@ class _SetPaymentAmountScreenState extends State<SetPaymentAmountScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Set Payment Amount'),
-        centerTitle: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            /// ✅ Stream Dropdown
-            DropdownButtonFormField<String>(
-              value: _selectedStream,
-              items: ['BCA', 'B.COM', 'BBA'].map((String stream) {
-                return DropdownMenuItem<String>(
-                  value: stream,
-                  child: Text(stream),
-                );
-              }).toList(),
-              onChanged: (newValue) {
-                setState(() {
-                  _selectedStream = newValue!;
-                });
-              },
-              decoration: const InputDecoration(
-                labelText: 'Select Stream',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16.0),
-
-            /// ✅ Semester Dropdown
-            DropdownButtonFormField<String>(
-              value: _selectedSemester,
-              items: List.generate(8, (index) => 'Semester ${index + 1}')
-                  .map((String semester) {
-                return DropdownMenuItem<String>(
-                  value: semester,
-                  child: Text(semester),
-                );
-              }).toList(),
-              onChanged: (newValue) {
-                setState(() {
-                  _selectedSemester = newValue!;
-                });
-              },
-              decoration: const InputDecoration(
-                labelText: 'Select Semester',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16.0),
-
-            /// ✅ Amount Text Field
-            TextField(
-              controller: amountController,
-              decoration: const InputDecoration(
-                labelText: 'Enter Amount',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 16.0),
-
-            /// ✅ Set Amount Button
-            ElevatedButton(
-              onPressed: _setAmount,
-              child: const Text('Set Amount'),
-            ),
-            const SizedBox(height: 16.0),
-
-            /// ✅ Display Amounts in Expandable List
-            Expanded(
-              child: ListView.builder(
-                itemCount: _amounts.length,
-                itemBuilder: (context, index) {
-                  String stream = _amounts.keys.elementAt(index);
-                  Map<String, dynamic> semesters = _amounts[stream];
-
-                  return ExpansionTile(
-                    title: Text(
-                      stream,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    children: semesters.keys.map<Widget>((semester) {
-                      int amount = semesters[semester]['amount'] ?? 0;
-
-                      return ListTile(
-                        title: Text('$semester: ₹$amount'),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () {
-                            setState(() {
-                              _selectedStream = stream;
-                              _selectedSemester = semester;
-                              amountController.text = amount.toString();
-                            });
-                          },
-                        ),
-                      );
-                    }).toList(),
-                  );
-                },
-              ),
-            ),
-          ],
+        title: const Text(
+          'Payment Collection',
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
+        centerTitle: true,
+        backgroundColor: AppColor.primaryColor,
+        elevation: 3,
+      ),
+      body: Container(
+        color: AppColor.appBackGroundColor,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Stream Dropdown
+              _buildDropdown(
+                label: 'Select Stream',
+                value: selectedStream,
+                items: streams,
+                onChanged: (value) => setState(() => selectedStream = value),
+              ),
+              const SizedBox(height: 15),
+
+              // Semester Dropdown
+              _buildDropdown(
+                label: 'Select Semester',
+                value: selectedSemester,
+                items: semesters,
+                onChanged: (value) => setState(() => selectedSemester = value),
+              ),
+              const SizedBox(height: 15),
+
+              // Amount TextField
+              TextField(
+                controller: _amountController,
+                decoration: InputDecoration(
+                  labelText: 'Enter Amount',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 20),
+
+              // Set Amount Button
+              ElevatedButton(
+                onPressed: _savePayment,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColor.primaryColor,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                child: isSettingAmount
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text(
+                        'Set Amount',
+                        style: TextStyle(fontSize: 18, color: Colors.white),
+                      ),
+              ),
+              const SizedBox(height: 20),
+
+              // Display all streams with semester-wise data instantly
+              Expanded(
+                child: paymentData.isEmpty
+                    ? const Center(
+                        child: Text('No Payment Data Available'),
+                      )
+                    : ListView.builder(
+                        itemCount: paymentData.length,
+                        itemBuilder: (context, index) {
+                          final stream = paymentData.keys.elementAt(index);
+                          final semesters = paymentData[stream]!;
+
+                          return Card(
+                            color: Colors
+                                .white, // Set the card background color to white
+                            margin: const EdgeInsets.symmetric(vertical: 8),
+                            elevation: 4,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: ExpansionTile(
+                              tilePadding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
+                              title: Text(
+                                'Stream: $stream',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColor.primaryColor,
+                                ),
+                              ),
+                              children: semesters.entries.map((entry) {
+                                return ListTile(
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 4),
+                                  title: Text(
+                                    'Semester: ${entry.key}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    'Amount: ₹${entry.value}',
+                                    style: const TextStyle(
+                                        color: Colors.green, fontSize: 16),
+                                  ),
+                                  trailing: IconButton(
+                                    icon: const Icon(Icons.delete,
+                                        color: Colors.red),
+                                    onPressed: () =>
+                                        _deletePayment(stream, entry.key),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDropdown({
+    required String label,
+    required String? value,
+    required List<String> items,
+    required Function(String?) onChanged,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColor.whiteColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.4),
+            blurRadius: 10,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: DropdownButtonFormField<String>(
+        value: value,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+        ),
+        items: items
+            .map((item) => DropdownMenuItem(
+                  value: item,
+                  child: Text(item),
+                ))
+            .toList(),
+        onChanged: onChanged,
       ),
     );
   }

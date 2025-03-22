@@ -280,4 +280,19 @@ class AuthController extends GetxController {
       print(e);
     }
   }
+
+  /// ✅ Check if the current user is a student
+  Future<bool> isStudent() async {
+    try {
+      User? user = auth.currentUser;
+      if (user != null) {
+        var query = dbRefStudent.child(user.uid);
+        DatabaseEvent event = await query.once();
+        return event.snapshot.exists;
+      }
+    } catch (e) {
+      print("Error checking if user is student: $e");
+    }
+    return false;
+  }
 }

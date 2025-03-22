@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
+import 'package:sascma/views/screens/faculty_screens/event/event_list_screen.dart';
 import 'package:sascma/views/screens/student_screens/attendance/student_attendance_screen.dart';
 import 'package:sascma/views/screens/student_screens/home/bottom_navigation_screen/profile_screen.dart';
 import 'package:sascma/views/screens/student_screens/payment/fee_payment_screen.dart';
@@ -351,9 +352,14 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     image: AppImage.collegeInfo,
                   ),
                 ),
-                buildDashboardItem(
-                  title: "Event",
-                  image: AppImage.event,
+                GestureDetector(
+                  onTap: () {
+                    Get.to(() => EventListScreen());
+                  },
+                  child: buildDashboardItem(
+                    title: "Event",
+                    image: AppImage.event,
+                  ),
                 ),
                 buildDashboardItem(
                   title: "Gallery",

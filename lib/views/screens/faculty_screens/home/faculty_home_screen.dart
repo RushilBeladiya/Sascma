@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:sascma/views/screens/faculty_screens/attendance/faculty_attendance_screen.dart';
+import 'package:sascma/views/screens/faculty_screens/event/event_list_screen.dart';
 import 'package:sascma/views/screens/faculty_screens/payment/fee_payment_status_screen.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -289,6 +290,9 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                 buildDashboardItem(
                   title: "Event",
                   image: AppImage.event,
+                  onTap: () {
+                    Get.to(() => EventListScreen());
+                  },
                 ),
                 buildDashboardItem(
                   title: "Gallery",
