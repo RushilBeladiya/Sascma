@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:sascma/controller/Administrator/home/admin_home_controller.dart';
 import 'package:sascma/controller/Auth/auth_controller.dart';
 import 'package:sascma/core/utils/images.dart';
+import 'package:sascma/screens/administrator_screens/Gallery/admin_gallery_screen.dart';
 import 'package:sascma/screens/administrator_screens/payment_screen/set_fees_payment_screen.dart';
 import 'package:sascma/screens/administrator_screens/staff_list_screen.dart';
 import 'package:sascma/screens/auth_screen/admin_auth_screen/faculty_registration_screen.dart';
@@ -293,9 +294,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen>
                   title: "Event",
                   image: AppImage.event,
                 ),
-                buildDashboardItem(
-                  title: "Gallery",
-                  image: AppImage.gallery,
+                GestureDetector(
+                  onTap: () {
+                    Get.to(() => AdminGalleryScreen());
+                  },
+                  child: buildDashboardItem(
+                    title: "Gallery",
+                    image: AppImage.gallery,
+                  ),
                 ),
                 buildDashboardItem(
                   title: "Sports",

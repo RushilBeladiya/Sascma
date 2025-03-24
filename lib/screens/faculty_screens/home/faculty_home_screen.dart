@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:sascma/controller/Faculty/home/faculty_home_controller.dart';
 import 'package:sascma/screens/auth_screen/student_auth_screen/student_registration_screen.dart';
+import 'package:sascma/screens/comman_gallery/gallery_screen.dart';
 import 'package:sascma/screens/faculty_screens/attendance_screen/faculty_attendance_main_screen.dart';
 import 'package:sascma/screens/faculty_screens/home/faculty_lectures_view_screen.dart';
 import 'package:sascma/screens/faculty_screens/payment_screen/payment_status_show.dart';
@@ -291,10 +292,16 @@ class _FacultyHomeScreenState extends State<FacultyHomeScreen> {
                   title: "Event",
                   image: AppImage.event,
                 ),
-                buildDashboardItem(
-                  title: "Gallery",
-                  image: AppImage.gallery,
+                GestureDetector(
+                  onTap: () {
+                    Get.to(() => GalleryScreen());
+                  },
+                  child: buildDashboardItem(
+                    title: "Gallery",
+                    image: AppImage.gallery,
+                  ),
                 ),
+
                 // buildDashboardItem(
                 //   title: "Sports",
                 //   image: AppImage.sports,

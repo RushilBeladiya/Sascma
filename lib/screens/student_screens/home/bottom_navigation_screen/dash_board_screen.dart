@@ -7,6 +7,7 @@ import 'package:sascma/controller/Student/home/student_home_controller.dart';
 import 'package:sascma/core/utils/images.dart';
 import 'package:sascma/models/student_model.dart';
 import 'package:sascma/screens/auth_screen/student_auth_screen/student_registration_screen.dart';
+import 'package:sascma/screens/comman_gallery/gallery_screen.dart';
 import 'package:sascma/screens/student_screens/Student_lectures_view_screen.dart';
 import 'package:sascma/screens/student_screens/fees_payment_screen/fess_paying_screen.dart';
 import 'package:sascma/screens/student_screens/home/bottom_navigation_screen/profile_screen.dart';
@@ -326,9 +327,14 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                   title: "Event",
                   image: AppImage.event,
                 ),
-                buildDashboardItem(
-                  title: "Gallery",
-                  image: AppImage.gallery,
+                GestureDetector(
+                  onTap: () {
+                    Get.to(() => GalleryScreen());
+                  },
+                  child: buildDashboardItem(
+                    title: "Gallery",
+                    image: AppImage.gallery,
+                  ),
                 ),
                 buildDashboardItem(
                   title: "Sports",
