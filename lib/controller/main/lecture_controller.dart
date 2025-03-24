@@ -1,10 +1,14 @@
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:sascma/services/notification_service.dart';
 
 class LectureController extends GetxController {
   final DatabaseReference dbRef = FirebaseDatabase.instance.ref("lectures");
+  final FirebaseMessaging messaging = FirebaseMessaging.instance;
+  final NotificationService notificationService = NotificationService();
 
   var selectedStream = RxnString();
   var selectedSubject = RxnString();
@@ -15,38 +19,55 @@ class LectureController extends GetxController {
   var endTime = Rxn<TimeOfDay>();
   var selectedDivision = RxnString();
 
-
   TextEditingController roomController = TextEditingController();
 
   List<String> semesters = [
-    "Semester 1", "Semester 2", "Semester 3", "Semester 4",
-    "Semester 5", "Semester 6", "Semester 7", "Semester 8"
+    "Semester 1",
+    "Semester 2",
+    "Semester 3",
+    "Semester 4",
+    "Semester 5",
+    "Semester 6",
+    "Semester 7",
+    "Semester 8"
   ];
 
   Map<String, Map<String, List<String>>> streamSemesterSubjects = {
     "B.COM": {
-      "Semester 1": ["a", "b"], "Semester 2": ["c", "d"],
-      "Semester 3": ["e", "f"], "Semester 4": ["g", "h"],
-      "Semester 5": ["i", "j"], "Semester 6": ["k", "l"],
-      "Semester 7": ["m", "n"], "Semester 8": ["o", "p"],
+      "Semester 1": ["a", "b"],
+      "Semester 2": ["c", "d"],
+      "Semester 3": ["e", "f"],
+      "Semester 4": ["g", "h"],
+      "Semester 5": ["i", "j"],
+      "Semester 6": ["k", "l"],
+      "Semester 7": ["m", "n"],
+      "Semester 8": ["o", "p"],
     },
     "BCA": {
-      "Semester 1": ["a", "b"], "Semester 2": ["c", "d"],
-      "Semester 3": ["e", "f"], "Semester 4": ["g", "h"],
-      "Semester 5": ["i", "j"], "Semester 6": ["k", "l"],
-      "Semester 7": ["m", "n"], "Semester 8": ["o", "p"],
+      "Semester 1": ["a", "b"],
+      "Semester 2": ["c", "d"],
+      "Semester 3": ["e", "f"],
+      "Semester 4": ["g", "h"],
+      "Semester 5": ["i", "j"],
+      "Semester 6": ["k", "l"],
+      "Semester 7": ["m", "n"],
+      "Semester 8": ["o", "p"],
     },
     "BBA": {
-      "Semester 1": ["a", "b"], "Semester 2": ["c", "d"],
-      "Semester 3": ["e", "f"], "Semester 4": ["g", "h"],
-      "Semester 5": ["i", "j"], "Semester 6": ["k", "l"],
-      "Semester 7": ["m", "n"], "Semester 8": ["o", "p"],
+      "Semester 1": ["a", "b"],
+      "Semester 2": ["c", "d"],
+      "Semester 3": ["e", "f"],
+      "Semester 4": ["g", "h"],
+      "Semester 5": ["i", "j"],
+      "Semester 6": ["k", "l"],
+      "Semester 7": ["m", "n"],
+      "Semester 8": ["o", "p"],
     },
   };
 
   List<String> getDivisions() {
     if (selectedSemester.value != null) {
-      return ["A", "B", "C","D","E","F","G","H"];
+      return ["A", "B", "C", "D", "E", "F", "G", "H"];
     }
     return [];
   }
@@ -58,14 +79,73 @@ class LectureController extends GetxController {
   }
 
   List<String> getSubjects() {
-    if (selectedStream.value == null || selectedSemester.value == null) return [];
-    return streamSemesterSubjects[selectedStream.value!]?[selectedSemester.value!] ?? [];
+    if (selectedStream.value == null || selectedSemester.value == null)
+      return [];
+    return streamSemesterSubjects[selectedStream.value!]
+            ?[selectedSemester.value!] ??
+        [];
   }
 
-  RxList<Map<String, dynamic>> studentLecturesList = <Map<String, dynamic>>[].obs;
-  RxList<Map<String, dynamic>> facultyLecturesList = <Map<String, dynamic>>[].obs;
-  RxBool isLoading = true.obs;
+  // Initialize FCM Notifications
+  @override
+  void onInit() {
+    super.onInit();
+    configureFCM();
+    notificationService.init(); // Initialize notification service
+  }
 
+  void configureFCM() async {
+    // Request notification permissions
+    NotificationSettings settings = await messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      print("FCM Notifications enabled.");
+    } else {
+      print("FCM Notifications NOT enabled.");
+    }
+
+    // Listen to FCM messages when app is in foreground
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print("FCM Message received: ${message.notification?.title}");
+      Get.snackbar(
+        message.notification?.title ?? "New Notification",
+        message.notification?.body ?? "No message body",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.blue,
+        colorText: Colors.white,
+      );
+    });
+
+    // Handle background and terminated state
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      print("FCM Message opened: ${message.notification?.title}");
+    });
+  }
+
+  Future<void> sendNotification(String title, String body) async {
+    try {
+      await messaging.subscribeToTopic("lectures");
+
+      await FirebaseDatabase.instance
+          .ref("notifications")
+          .push()
+          .set({"title": title, "body": body});
+
+      print("Notification sent successfully.");
+    } catch (e) {
+      print("Error sending notification: $e");
+    }
+  }
+
+  RxList<Map<String, dynamic>> studentLecturesList =
+      <Map<String, dynamic>>[].obs;
+  RxList<Map<String, dynamic>> facultyLecturesList =
+      <Map<String, dynamic>>[].obs;
+  RxBool isLoading = true.obs;
 
   void fetchStudentLectures(String stream, String semester) {
     isLoading.value = true;
@@ -76,14 +156,15 @@ class LectureController extends GetxController {
       if (data != null) {
         DateTime now = DateTime.now();
         DateFormat dateFormat = DateFormat("dd-MM-yyyy"); // Format for parsing
-        DateFormat time12Format = DateFormat("hh:mm a"); // 12-hour format with AM/PM
+        DateFormat time12Format =
+            DateFormat("hh:mm a"); // 12-hour format with AM/PM
         DateFormat time24Format = DateFormat("HH:mm"); // 24-hour format
 
         studentLecturesList.value = data.entries
             .map((e) => {
-          "id": e.key,
-          ...Map<String, dynamic>.from(e.value),
-        })
+                  "id": e.key,
+                  ...Map<String, dynamic>.from(e.value),
+                })
             .where((lecture) {
           final String lectureDateStr = lecture["date"]?.trim() ?? "";
           final String startTimeStr = lecture["start_time"]?.trim() ?? "";
@@ -119,8 +200,7 @@ class LectureController extends GetxController {
             print("Date parsing error: $e");
             return false;
           }
-        })
-            .toList();
+        }).toList();
       } else {
         studentLecturesList.clear();
       }
@@ -129,7 +209,8 @@ class LectureController extends GetxController {
     });
   }
 
-  void fetchFacultyLectures(String stream, String semester, DateTime selectedDate) {
+  void fetchFacultyLectures(
+      String stream, String semester, DateTime selectedDate) {
     isLoading.value = true;
 
     dbRef.onValue.listen((event) {
@@ -140,15 +221,17 @@ class LectureController extends GetxController {
 
         facultyLecturesList.value = data.entries
             .map((e) => {
-          "id": e.key,
-          ...Map<String, dynamic>.from(e.value),
-        })
+                  "id": e.key,
+                  ...Map<String, dynamic>.from(e.value),
+                })
             .where((lecture) {
           final String lectureStream = lecture["stream"] ?? "";
           final String lectureSemester = lecture["semester"] ?? "";
           final String lectureDateStr = lecture["date"]?.trim() ?? "";
 
-          if (lectureStream.isEmpty || lectureSemester.isEmpty || lectureDateStr.isEmpty) return false;
+          if (lectureStream.isEmpty ||
+              lectureSemester.isEmpty ||
+              lectureDateStr.isEmpty) return false;
 
           try {
             DateTime lectureDate = dateFormat.parse(lectureDateStr);
@@ -163,7 +246,6 @@ class LectureController extends GetxController {
             return false;
           }
         }).toList();
-
       } else {
         facultyLecturesList.clear();
       }
@@ -171,12 +253,6 @@ class LectureController extends GetxController {
       isLoading.value = false;
     });
   }
-
-
-
-
-
-
 
   // void fetchLectures(String stream, String semester) {
   //   isLoading.value = true;
@@ -215,6 +291,7 @@ class LectureController extends GetxController {
       selectedDate.value = pickedDate;
     }
   }
+
   // Future<void> selectDate(BuildContext context) async {
   //   final DateTime now = DateTime.now();
   //   final DateTime lastSelectableDate = now.add(Duration(days: 7));
@@ -326,6 +403,29 @@ class LectureController extends GetxController {
         'room': roomController.text.trim(),
       });
 
+      // Schedule notification 10 minutes before lecture start time
+      DateTime lectureDateTime = DateTime(
+        selectedDate.value!.year,
+        selectedDate.value!.month,
+        selectedDate.value!.day,
+        startTime.value!.hour,
+        startTime.value!.minute,
+      ).subtract(Duration(minutes: 10));
+
+      await notificationService.scheduleNotification(
+        key.hashCode,
+        "Upcoming Lecture",
+        "Your lecture on ${selectedSubject.value} is starting soon.",
+        lectureDateTime,
+        "lecture_channel", // Add the missing argument here
+      );
+
+      // Send FCM Notification
+      await sendNotification(
+        "New Lecture Added",
+        "Stream: ${selectedStream.value}, Subject: ${selectedSubject.value}",
+      );
+
       Get.snackbar("Success", "Lecture added successfully",
           backgroundColor: Colors.green, colorText: Colors.white);
 
@@ -345,7 +445,6 @@ class LectureController extends GetxController {
           backgroundColor: Colors.red, colorText: Colors.white);
     }
   }
-
 }
 
 // class LectureController extends GetxController {

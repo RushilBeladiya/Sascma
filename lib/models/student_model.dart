@@ -10,6 +10,7 @@ class StudentModel {
   String semester;
   String division;
   String profileImageUrl;
+  String status; // New field
 
   StudentModel({
     required this.uid,
@@ -23,6 +24,7 @@ class StudentModel {
     required this.semester,
     required this.division,
     required this.profileImageUrl,
+    this.status = 'unpaid', // Default value
   });
 
   factory StudentModel.fromMap(Map<dynamic, dynamic> map) {
@@ -38,6 +40,7 @@ class StudentModel {
       semester: map['semester'] ?? '',
       division: map['division'] ?? '',
       profileImageUrl: map['profileImageUrl'] ?? '',
+      status: map['status'] ?? 'unpaid', // Map field with default
     );
   }
 
@@ -54,6 +57,7 @@ class StudentModel {
       'semester': semester,
       'division': division,
       'profileImageUrl': profileImageUrl,
+      'status': status, // Add status to map
     };
   }
 }
