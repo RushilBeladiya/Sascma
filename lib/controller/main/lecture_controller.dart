@@ -33,7 +33,7 @@ class LectureController extends GetxController {
   ];
 
   Map<String, Map<String, List<String>>> streamSemesterSubjects = {
-    "B.COM": {
+    "BCOM": {
       "Semester 1": ["a", "b"],
       "Semester 2": ["c", "d"],
       "Semester 3": ["e", "f"],
@@ -463,7 +463,7 @@ class LectureController extends GetxController {
 //
 //
 //   Map<String, Map<String, List<String>>> streamSemesterSubjects = {
-//     "B.COM": {
+//     "BCOM": {
 //       "Semester 1": ["a", "b"],
 //       "Semester 2": ["c", "d"],
 //       "Semester 3": ["e", "f"],

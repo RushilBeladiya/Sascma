@@ -21,7 +21,7 @@ class _FacultyLectureListScreenState extends State<FacultyLectureListScreen> {
   final RxString selectedSemester = "Semester 1".obs;
   final Rx<DateTime> selectedDate = DateTime.now().obs;
 
-  final List<String> streams = ["BCA", "B.COM", "BBA"];
+  final List<String> streams = ["BCA", "BCOM", "BBA"];
 
   @override
   void initState() {

@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import '../../../../controller/Auth/auth_controller.dart';
 import '../../../../core/utils/colors.dart';
 
@@ -8,7 +9,8 @@ class StudentRegistrationScreen extends StatefulWidget {
   StudentRegistrationScreen({super.key});
 
   @override
-  _StudentRegistrationScreenState createState() => _StudentRegistrationScreenState();
+  _StudentRegistrationScreenState createState() =>
+      _StudentRegistrationScreenState();
 }
 
 class _StudentRegistrationScreenState extends State<StudentRegistrationScreen> {
@@ -27,7 +29,7 @@ class _StudentRegistrationScreenState extends State<StudentRegistrationScreen> {
   String? selectedSemester;
   String? selectedDivision;
 
-  List<String> streams = ['BCA', 'BBA', 'B.COM'];
+  List<String> streams = ['BCA', 'BBA', 'BCOM'];
   List<String> semesters = [
     'Semester 1',
     'Semester 2',
@@ -478,17 +480,17 @@ class _StudentRegistrationScreenState extends State<StudentRegistrationScreen> {
                   GestureDetector(
                     onTap: () async {
                       if (regGlobalFormKey.currentState!.validate()) {
-                          AuthController.instance.registerStudent(
-                            firstnameController.text.trim(),
-                            lastnameController.text.trim(),
-                            surnameController.text.trim(),
-                            spIdController.text.trim(),
-                            phoneController.text.trim(),
-                            emailController.text.trim(),
-                            selectedStream!,
-                            selectedSemester!,
-                            selectedDivision!,
-                          );
+                        AuthController.instance.registerStudent(
+                          firstnameController.text.trim(),
+                          lastnameController.text.trim(),
+                          surnameController.text.trim(),
+                          spIdController.text.trim(),
+                          phoneController.text.trim(),
+                          emailController.text.trim(),
+                          selectedStream!,
+                          selectedSemester!,
+                          selectedDivision!,
+                        );
                       }
                     },
                     child: Container(

@@ -24,7 +24,7 @@ class _CreateClassScreenState extends State<CreateClassScreen> {
   List<Map<String, dynamic>> students = [];
   bool isFetching = false;
 
-  List<String> streams = ['BCA', 'BBA', 'B.COM'];
+  List<String> streams = ['BCA', 'BBA', 'BCOM'];
   List<String> semesters = [
     'Semester 1',
     'Semester 2',
@@ -66,7 +66,7 @@ class _CreateClassScreenState extends State<CreateClassScreen> {
       'Semester 7': ['Project Work', 'Leadership', 'Consulting'],
       'Semester 8': ['Internship', 'Research Project'],
     },
-    'B.COM': {
+    'BCOM': {
       'Semester 1': [
         'Financial Accounting',
         'Business Economics',
