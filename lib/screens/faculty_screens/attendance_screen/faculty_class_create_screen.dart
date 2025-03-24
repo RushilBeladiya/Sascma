@@ -1,6 +1,7 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:sascma/core/utils/colors.dart'; // Import your custom AppColor
 
 import '../../../../controller/main/attendence_controller.dart';
 
@@ -17,7 +18,7 @@ class CreateClassScreen extends StatefulWidget {
 class _CreateClassScreenState extends State<CreateClassScreen> {
   final DatabaseReference _dbRef = FirebaseDatabase.instance.ref("classes");
   final AttendanceController _attendanceController =
-  Get.put(AttendanceController());
+      Get.put(AttendanceController());
 
   String? selectedStream, selectedSemester, selectedDivision, selectedSubject;
   List<Map<String, dynamic>> students = [];
@@ -108,26 +109,26 @@ class _CreateClassScreenState extends State<CreateClassScreen> {
 
         if (students.isNotEmpty) {
           Get.snackbar("Success", "Students fetched successfully!",
-              backgroundColor: Colors.green, colorText: Colors.white);
+              backgroundColor: AppColor.successColor, colorText: Colors.white);
         } else {
           Get.snackbar("No Students", "No students found. Try again!",
-              backgroundColor: Colors.orange, colorText: Colors.white);
+              backgroundColor: AppColor.warningColor, colorText: Colors.white);
         }
       } catch (e) {
         setState(() => isFetching = false);
         Get.snackbar("Error", "Failed to fetch students. Try again!",
-            backgroundColor: Colors.red, colorText: Colors.white);
+            backgroundColor: AppColor.errorColor, colorText: Colors.white);
       }
     } else {
       Get.snackbar("Warning", "Select Stream, Semester, and Division.",
-          backgroundColor: Colors.orange, colorText: Colors.white);
+          backgroundColor: AppColor.warningColor, colorText: Colors.white);
     }
   }
 
   Future<void> saveClass() async {
     if (students.isEmpty) {
       Get.snackbar("Error", "Fetch students before saving!",
-          backgroundColor: Colors.red, colorText: Colors.white);
+          backgroundColor: AppColor.errorColor, colorText: Colors.white);
       return;
     }
 
@@ -139,7 +140,7 @@ class _CreateClassScreenState extends State<CreateClassScreen> {
 
     if (event.snapshot.value != null) {
       Map<String, dynamic> classMap =
-      Map<String, dynamic>.from(event.snapshot.value as Map);
+          Map<String, dynamic>.from(event.snapshot.value as Map);
       bool classExists = classMap.values.any((classData) {
         return classData['subject'] == selectedSubject &&
             classData['division'] == selectedDivision;
@@ -148,7 +149,7 @@ class _CreateClassScreenState extends State<CreateClassScreen> {
       if (classExists) {
         Get.snackbar("Error",
             "Class for this subject in the same division already exists",
-            backgroundColor: Colors.red, colorText: Colors.white);
+            backgroundColor: AppColor.errorColor, colorText: Colors.white);
         return;
       }
     }
@@ -165,7 +166,7 @@ class _CreateClassScreenState extends State<CreateClassScreen> {
     await _dbRef.push().set(newClass);
 
     Get.snackbar("Success", "Class saved successfully!",
-        backgroundColor: Colors.green, colorText: Colors.white);
+        backgroundColor: AppColor.successColor, colorText: Colors.white);
 
     Navigator.pop(context);
   }
@@ -173,9 +174,10 @@ class _CreateClassScreenState extends State<CreateClassScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColor.appBackGroundColor,
       appBar: AppBar(
-        title: Text('Create Class', style: TextStyle(fontSize: 20)),
-        backgroundColor: Colors.blueAccent,
+        title: const Text('Create Class', style: TextStyle(fontSize: 20)),
+        backgroundColor: AppColor.primaryColor,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -189,26 +191,26 @@ class _CreateClassScreenState extends State<CreateClassScreen> {
               });
             }),
             _buildDropdownCard('Semester', semesters, selectedSemester,
-                    (value) {
-                  setState(() {
-                    selectedSemester = value;
-                    selectedSubject = null;
-                  });
-                }),
+                (value) {
+              setState(() {
+                selectedSemester = value;
+                selectedSubject = null;
+              });
+            }),
             _buildDropdownCard('Division', divisions, selectedDivision,
-                    (value) => setState(() => selectedDivision = value)),
+                (value) => setState(() => selectedDivision = value)),
             _buildDropdownCard('Subject', getSubjects(), selectedSubject,
-                    (value) {
-                  setState(() => selectedSubject = value);
-                }),
+                (value) {
+              setState(() => selectedSubject = value);
+            }),
             const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 ElevatedButton.icon(
                   onPressed: fetchStudents,
-                  icon: Icon(Icons.refresh),
-                  label: Text('Fetch Students'),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Fetch Students'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orangeAccent,
                     foregroundColor: Colors.white,
@@ -219,10 +221,10 @@ class _CreateClassScreenState extends State<CreateClassScreen> {
                 ),
                 ElevatedButton.icon(
                   onPressed: saveClass,
-                  icon: Icon(Icons.save),
-                  label: Text('Save Class'),
+                  icon: const Icon(Icons.save),
+                  label: const Text('Save Class'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
+                    backgroundColor: AppColor.successColor,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -235,27 +237,27 @@ class _CreateClassScreenState extends State<CreateClassScreen> {
             students.isEmpty
                 ? Center(child: Text("No Students Found"))
                 : ListView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemCount: students.length,
-              itemBuilder: (context, index) {
-                var student = students[index];
-                return Card(
-                  elevation: 3,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: students.length,
+                    itemBuilder: (context, index) {
+                      var student = students[index];
+                      return Card(
+                        elevation: 3,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: Colors.blue,
+                            child: Icon(Icons.person, color: Colors.white),
+                          ),
+                          title: Text(
+                              '${student['firstName']} ${student['lastName']}'),
+                        ),
+                      );
+                    },
                   ),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: Colors.blue,
-                      child: Icon(Icons.person, color: Colors.white),
-                    ),
-                    title: Text(
-                        '${student['firstName']} ${student['lastName']}'),
-                  ),
-                );
-              },
-            ),
           ],
         ),
       ),
@@ -266,6 +268,7 @@ class _CreateClassScreenState extends State<CreateClassScreen> {
       void Function(String?) onChanged) {
     return Card(
       elevation: 4,
+      color: AppColor.appBackGroundColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: DropdownButtonFormField<String>(
         decoration: InputDecoration(

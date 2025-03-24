@@ -3,10 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:sascma/controller/Student/home/student_home_controller.dart';
+import 'package:sascma/core/utils/colors.dart';
 
 class FeePaymentScreen extends StatefulWidget {
-  // final String studentUID;
-
   FeePaymentScreen({super.key});
 
   @override
@@ -173,11 +172,21 @@ class _FeePaymentScreenState extends State<FeePaymentScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-          Text(value,
-              style:
-                  TextStyle(fontSize: 16, color: valueColor ?? Colors.black)),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(fontSize: 16, color: valueColor ?? Colors.black),
+              textAlign: TextAlign.end,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
     );
@@ -187,14 +196,15 @@ class _FeePaymentScreenState extends State<FeePaymentScreen> {
     return Card(
       elevation: 8,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      margin: EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+      margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(title,
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                style:
+                    const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             ...children
           ],
         ),
@@ -206,20 +216,14 @@ class _FeePaymentScreenState extends State<FeePaymentScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Fee Payment',
+        title: const Text('Fee Payment',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: AppColor.primaryColor,
         centerTitle: true,
         elevation: 4,
       ),
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.blue.shade100, Colors.blue.shade300],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
+        color: AppColor.appBackGroundColor,
         child: isLoading
             ? const Center(child: CircularProgressIndicator())
             : (studentData == null || paymentData == null)
@@ -253,7 +257,7 @@ class _FeePaymentScreenState extends State<FeePaymentScreen> {
                               _isPaid ? 'Paid' : 'Unpaid',
                               _isPaid ? Colors.green : Colors.red,
                             ),
-                            SizedBox(height: 20),
+                            const SizedBox(height: 20),
                             ElevatedButton(
                               onPressed: _isPaid ? null : _openRazorpay,
                               style: ElevatedButton.styleFrom(
