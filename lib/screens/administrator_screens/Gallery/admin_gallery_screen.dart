@@ -100,7 +100,7 @@ class _AdminGalleryScreenState extends State<AdminGalleryScreen> {
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColor.appBackGroundColor),
+                    backgroundColor: AppColor.blackColor),
                 onPressed: () => Navigator.of(context).pop(true),
                 child: Text('Delete', style: TextStyle(color: Colors.white)),
               ),
