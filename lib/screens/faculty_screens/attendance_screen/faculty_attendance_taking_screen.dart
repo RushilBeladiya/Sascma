@@ -287,12 +287,13 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:sascma/core/utils/colors.dart'; // Import your colors.dart
+import 'package:sascma/core/utils/colors.dart';
 
 class ClassDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> classData;
 
-  ClassDetailsScreen({required this.classData});
+  const ClassDetailsScreen({Key? key, required this.classData})
+      : super(key: key);
 
   @override
   _ClassDetailsScreenState createState() => _ClassDetailsScreenState();
@@ -305,7 +306,20 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchAttendance();
+    // Initialize attendance status for all students to 'Absent'
+    _initializeAttendanceStatus();
+  }
+
+  /// Initialize attendance status for all students to 'Absent'
+  void _initializeAttendanceStatus() {
+    setState(() {
+      for (var student in widget.classData['students']) {
+        String spid = student['spid']?.toString() ?? '';
+        if (spid.isNotEmpty) {
+          attendanceStatus[spid] = 'Absent';
+        }
+      }
+    });
   }
 
   /// Fetch attendance from Firebase for the selected date
@@ -331,9 +345,7 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
             data.map((key, value) => MapEntry(key, value['status']));
       });
     } else {
-      setState(() {
-        attendanceStatus.clear();
-      });
+      _initializeAttendanceStatus();
     }
   }
 
@@ -367,6 +379,7 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
     if (!isToday()) return;
 
     setState(() {
+      // Toggle between 'Present' and 'Absent'
       attendanceStatus[spid] =
           attendanceStatus[spid] == 'Present' ? 'Absent' : 'Present';
     });
@@ -399,15 +412,15 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Attendance submitted successfully.'),
-          backgroundColor: AppColor.successColor, // ✅ Success color
+          content: const Text('Attendance submitted successfully.'),
+          backgroundColor: AppColor.successColor,
         ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to submit attendance: $e'),
-          backgroundColor: AppColor.errorColor, // ✅ Error color
+          backgroundColor: AppColor.errorColor,
         ),
       );
     }
@@ -429,10 +442,10 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
         title: Text(
           '${widget.classData['stream']} - Semester ${widget.classData['semester']} - Division ${widget.classData['division']}',
         ),
-        backgroundColor: AppColor.primaryColor, // ✅ Primary color
+        backgroundColor: AppColor.primaryColor,
         centerTitle: true,
       ),
-      backgroundColor: AppColor.appBackGroundColor, // ✅ Background color
+      backgroundColor: AppColor.appBackGroundColor,
       body: Column(
         children: [
           // Date selection
@@ -445,16 +458,16 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: AppColor.textColor, // ✅ Text color
+                    color: AppColor.textColor,
                   ),
                 ),
                 const SizedBox(height: 10),
                 ElevatedButton.icon(
                   onPressed: () => _selectDate(context),
-                  icon: Icon(Icons.calendar_today),
-                  label: Text('Select Date'),
+                  icon: const Icon(Icons.calendar_today),
+                  label: const Text('Select Date'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColor.primaryColor, // ✅ Primary color
+                    backgroundColor: AppColor.primaryColor,
                     foregroundColor: Colors.white,
                   ),
                 ),
@@ -463,9 +476,21 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
                   "Selected Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}",
                   style: TextStyle(
                     fontSize: 16,
-                    color: AppColor.textColor, // ✅ Text color
+                    color: AppColor.textColor,
                   ),
                 ),
+                // Attendance Summary
+                if (isCurrentDate)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Text(
+                      _getAttendanceSummary(),
+                      style: TextStyle(
+                        color: AppColor.warningColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -479,7 +504,7 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w500,
-                        color: AppColor.warningColor, // ✅ Warning color
+                        color: AppColor.warningColor,
                       ),
                     ),
                   )
@@ -491,13 +516,13 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
                       var lastName = student['lastName'] ?? 'Unknown';
                       var spid = student['spid'] ?? 'N/A';
 
-                      String status = attendanceStatus[spid] ?? 'Unmarked';
+                      String status = attendanceStatus[spid] ?? 'Absent';
                       Color statusColor = _getStatusColor(status);
 
                       return Card(
                         margin: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 8),
-                        color: AppColor.cardColor, // ✅ Card color
+                        color: AppColor.cardColor,
                         elevation: 4,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -508,7 +533,7 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
                             backgroundColor: AppColor.primaryColor,
                             child: Text(
                               firstName[0].toUpperCase(),
-                              style: TextStyle(color: Colors.white),
+                              style: const TextStyle(color: Colors.white),
                             ),
                           ),
                           title: Text(
@@ -519,15 +544,27 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
                               color: AppColor.textColor,
                             ),
                           ),
-                          subtitle: Text('SPID: $spid'),
-                          trailing: Switch(
-                            value: attendanceStatus[spid] == 'Present',
-                            onChanged: (bool newValue) =>
-                                _toggleAttendance(spid),
-                            activeColor: AppColor.successColor,
-                            inactiveThumbColor: AppColor.errorColor,
-                            inactiveTrackColor: AppColor.warningColor,
+                          subtitle: Text(
+                            'SPID: $spid',
+                            style: TextStyle(
+                              color: AppColor.textColor.withOpacity(0.7),
+                            ),
                           ),
+                          trailing: isCurrentDate
+                              ? Switch(
+                                  value: status == 'Present',
+                                  onChanged: (_) => _toggleAttendance(spid),
+                                  activeColor: AppColor.successColor,
+                                  inactiveThumbColor: AppColor.errorColor,
+                                  inactiveTrackColor: AppColor.warningColor,
+                                )
+                              : Text(
+                                  status,
+                                  style: TextStyle(
+                                    color: statusColor,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                         ),
                       );
                     },
@@ -539,8 +576,8 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
             padding: const EdgeInsets.all(16.0),
             child: ElevatedButton.icon(
               onPressed: isCurrentDate ? _confirmSubmission : null,
-              icon: Icon(Icons.save),
-              label: Text('Submit Records'),
+              icon: const Icon(Icons.save),
+              label: const Text('Submit Records'),
               style: ElevatedButton.styleFrom(
                 backgroundColor:
                     isCurrentDate ? AppColor.primaryColor : Colors.grey,
@@ -551,5 +588,14 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
         ],
       ),
     );
+  }
+
+  /// Generate attendance summary
+  String _getAttendanceSummary() {
+    int totalStudents = widget.classData['students'].length;
+    int presentStudents =
+        attendanceStatus.values.where((status) => status == 'Present').length;
+
+    return '$presentStudents out of $totalStudents students are present';
   }
 }
